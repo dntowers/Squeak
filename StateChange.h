@@ -19,21 +19,14 @@ public:
 	{
 		x_type = EV_TYPE::EV_NULL;
 		x_event = nullptr;
-		x_time = -1;
+		x_time = -1;		
 	};
 
 	MouseLLEvent^	x_event;
 	EV_TYPE			x_type;
 	double			x_time;
+	int				x_EventID;
 };
-
-// ------------------------------------------------------ StateChange
-
-//public enum class SC_INDEX {
-//	SCI_ORIGIN = 0,				// indexes origin
-//	SCI_DEST   = 1,				// indexes destination
-//	SCI_NEXT   = 2,				// indexes next
-//};
 
 
 ref class StateChange : public System::Object
@@ -52,10 +45,10 @@ public:
 	// ------------------------------------------------------properties
 	// ---- state values
 	SC_DIR	  directionX;	// direction change
-	SC_STATE  state;		// play / record state
+	SC_STATE  stateX;		// play / record state
 	SC_SEQ    seqX;			// sequence change
 	SC_EVENT  eventX;		// event change
-	SC_REASON reason;		// what caused state change
+	SC_REASON reasonX;		// what caused state change
 
 	// --- other
 	// events - origin can be after dest if moving back

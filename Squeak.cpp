@@ -12,6 +12,8 @@
 #include "Form1.h"
 #include "WTypes.h"
 
+#define STATE_CHANGE
+
 using namespace Squeak;
 
 
@@ -276,16 +278,7 @@ namespace Squeak
 				{
 					// IMPLEMENT NEW SEQUENCE - RECORDING
 					double dTime = WMP_GetPosition();
-					// vvvvvvvv OLD SEQUENCE vvvvvv
-					//try
-					//{
-					//	mouseEvents = gcnew MouseEvents(strNewName, dTime, btnArray[iCurrentKey]->bFeeding, iCurrentKey);
-					//}
-					//catch (OutOfMemoryException ^e)
-					//{
-					//	MessageBox::Show( String::Format("New MouseEvents: OutOfMemoryException Handler: {0}", e) );
-					//}
-					// ^^^^^^^ OLD SEQUENCE ^^^^^
+					bAddedOK = true;
 					try
 					{
 						mouseLL = gcnew MouseLL(strNewName, axWindowsMediaPlayer1->URL, WMP_Duration(), dTime, btnArray[iCurrentKey]->bFeeding, iCurrentKey);
@@ -293,23 +286,35 @@ namespace Squeak
 					catch (OutOfMemoryException ^e)
 					{
 						MessageBox::Show( String::Format("New MouseLL: OutOfMemoryException Handler: {0}", e) );
+						bAddedOK = false;
 					}
-					bAddedOK = true;
-					UpdateFormEventTimes(); // update form times, this event is the first and last
+					// IMPLEMENT NEW STATE CHANCE STACK ???
+					#ifdef STATE_CHANGE
+						try
+						{
+							stateStack = gcnew StateChangeStack();
+						}
+						catch (OutOfMemoryException ^e)
+						{
+							MessageBox::Show( String::Format("New StateChangeStack: OutOfMemoryException Handler: {0}", e) );
+							bAddedOK = false;
+						}
+					#endif
 					
+
+					if(bAddedOK)
+					{
+						UpdateFormEventTimes(); // update form times, this event is the first and last
+						// add the new single event
+						#ifdef STATE_CHANGE
+								// add load sequence state change
+								stateStack->add_event_newSequence(mouseLL->getFirstEvent());
+						#endif
+					}
 				}else
 				{
 					// IMPLEMENT NEW SEQUENCE - NOT RECORDING
-					// vvvvvvvv OLD SEQUENCE vvvvvv
-					//try
-					//{
-					//	mouseEvents = gcnew MouseEvents(strNewName);
-					//}
-					//catch (OutOfMemoryException ^e)
-					//{
-					//	MessageBox::Show( String::Format("New MouseEvents: OutOfMemoryException Handler: {0}", e) );
-					//}
-					// ^^^^^^^ OLD SEQUENCE ^^^^^
+					bAddedOK = true;
 					try
 					{
 						mouseLL = gcnew MouseLL(strNewName, axWindowsMediaPlayer1->URL, WMP_Duration());
@@ -317,8 +322,23 @@ namespace Squeak
 					catch (OutOfMemoryException ^e)
 					{
 						MessageBox::Show( String::Format("New MouseLL: OutOfMemoryException Handler: {0}", e) );
+						bAddedOK = false;
 					}
-					bAddedOK = true;
+
+					// IMPLEMENT NEW STATE CHANCE STACK ???
+					#ifdef STATE_CHANGE
+						try
+						{
+							stateStack = gcnew StateChangeStack();
+						}
+						catch (OutOfMemoryException ^e)
+						{
+							MessageBox::Show( String::Format("New StateChangeStack: OutOfMemoryException Handler: {0}", e) );
+							bAddedOK = false;
+						}
+					#endif
+
+					// stateStack = gcnew StateChangeStack();
 				}
 				// add to sequence name text box
 				if(bAddedOK)
@@ -328,7 +348,8 @@ namespace Squeak
 				}
 			}else
 			{
-
+				// empty string name
+				bAddedOK = false;
 			}
 		}
 		return bAddedOK;
@@ -353,6 +374,8 @@ namespace Squeak
 			System::String^ strSeqLoadFile = _LoadSeqDialog();
 			if(strSeqLoadFile->Length > 0)
 			{
+				bool bAddedOK = true;
+
 				// ---- have file name!	
 				// need new sequence
 				if(mouseLL != nullptr)
@@ -366,28 +389,53 @@ namespace Squeak
 				catch (OutOfMemoryException ^e)
 				{
 					MessageBox::Show( String::Format("New MouseLL: OutOfMemoryException Handler: {0}", e) );
+					bAddedOK = false;
 				}
+				// IMPLEMENT NEW STATE CHANCE STACK ???
+				#ifdef STATE_CHANGE
+					try
+					{
+						stateStack = gcnew StateChangeStack();
+					}
+					catch (OutOfMemoryException ^e)
+					{
+						MessageBox::Show( String::Format("New StateChangeStack: OutOfMemoryException Handler: {0}", e) );
+						bAddedOK = false;
+					}
+				#endif
 
 				// IMPLEMENT LOAD SEQUENCE
-				if(mouseLL->Load_Sequence(strSeqLoadFile))
+				if(bAddedOK)
 				{
-					//MessageBox::Show("LOAD SEQUENCE OK");
-					// TO DO
-					// update grid data
-					UpdateGridData();
-					// update first, last events
-					UpdateFormEventTimes();
-					// update save button?									
-					btnSequenceSave->Enabled = true;
-					// update series name box
-					textBoxSeqName->Text = mouseLL->getSequenceName();
+					if(mouseLL->Load_Sequence(strSeqLoadFile))
+					{
+						// update grid data
+						UpdateGridData();
+						// update first, last events
+						UpdateFormEventTimes();
+						// update save button?									
+						btnSequenceSave->Enabled = true;
+						// update series name box
+						textBoxSeqName->Text = mouseLL->getSequenceName();
 
-				}else
-				{
-					// fail, destroy sequence
-					MessageBox::Show("DELETING");
-					delete mouseLL;
-					mouseLL = nullptr;
+						#ifdef STATE_CHANGE
+							// add load sequence state change
+							MouseLLEvent^ firstEvent = mouseLL->getFirstEvent();
+							MouseLLEvent^ lastEvent = mouseLL->getLastEvent();
+							stateStack->add_event_loadSequence(firstEvent, lastEvent, firstEvent->getNextEvent());
+						#endif
+					}else
+					{
+						// fail, destroy sequence
+						MessageBox::Show("DELETING");
+						delete mouseLL;
+						mouseLL = nullptr;
+						#ifdef STATE_CHANGE
+							delete stateStack;
+							stateStack = nullptr;
+						#endif
+
+					}
 				}
 			}
 		}

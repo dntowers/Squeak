@@ -4,10 +4,10 @@
 
 MouseLLEvent::MouseLLEvent(void)
 {
-
+	EventID = -1;
 }
 
-MouseLLEvent::MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ new_prevEvent, MouseLLEvent^ new_nextEvent)
+MouseLLEvent::MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ new_prevEvent, MouseLLEvent^ new_nextEvent, int newEventID)
 {
 	// values
 	dTimestamp = dNewTime;
@@ -16,23 +16,17 @@ MouseLLEvent::MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLE
 	// pointers
 	prevEvent = new_prevEvent;
 	nextEvent = new_nextEvent;
-}
-// populate grid row
-void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
-{
-	// convert time to movie stamp
-	double dMinutes = floor(dTimestamp / 60);
-	double dSeconds = fmod(dTimestamp, 60);
-	// add data
-	rowDataArray[0] = System::String::Format( "{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
-	rowDataArray[1] = System::String::Format("{0}",iArm);
-	rowDataArray[2] = System::String::Format("{0}",bFed);
+	// event ID
+	EventID = newEventID;
 }
 
 #pragma region MouseLL constructors
 MouseLL::MouseLL(void)
 {
+	new_EventID = 0;
 }
+
+
 
 MouseLL::MouseLL(System::String^ currentMovieURL, double currentMovieSecs)
 {
@@ -40,6 +34,8 @@ MouseLL::MouseLL(System::String^ currentMovieURL, double currentMovieSecs)
 	movieURL = currentMovieURL;
 	// max movie seconds
 	dMaxMovieSecs = currentMovieSecs;
+	// setup event ID
+	new_EventID = 0;
 }
 
 MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs)
@@ -59,6 +55,8 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	IsDirty = false;
 	// max movie seconds
 	dMaxMovieSecs = currentMovieSecs;
+	// setup event ID
+	new_EventID = 0;
 
 }
 
@@ -79,9 +77,25 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	IsDirty = false;
 	// max movie seconds
 	dMaxMovieSecs = currentMovieSecs;
+	// setup event ID
+	new_EventID = 0;
 
 }
 #pragma endregion
+
+// populate grid row
+void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
+{
+	// convert time to movie stamp
+	double dMinutes = floor(dTimestamp / 60);
+	double dSeconds = fmod(dTimestamp, 60);
+	// add data
+	rowDataArray[0] = System::String::Format("{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
+	rowDataArray[1] = System::String::Format("{0}",iArm);
+	rowDataArray[2] = System::String::Format("{0}",bFed);
+}
+
+
 // buttons
 #pragma region MouseLL add event
 	// add new event
@@ -193,7 +207,9 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	MouseLLEvent^ MouseLL::_createEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ new_prevEvent, MouseLLEvent^ new_nextEvent)
 	{
 			// create new event
-			MouseLLEvent^ newEvent = gcnew MouseLLEvent(dNewTime, bNewFeed, iNewArm, new_prevEvent, new_nextEvent);
+			MouseLLEvent^ newEvent = gcnew MouseLLEvent(dNewTime, bNewFeed, iNewArm, new_prevEvent, new_nextEvent, new_EventID);
+			// increment tracker
+			new_EventID++;
 			return newEvent;
 	}
 	
@@ -632,7 +648,8 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		//System::Diagnostics::Debug::WriteLine(System::String::Format("iEventIndex={0}, timestamp={1}, arm={2}, fed={3}\n", 
 		//								iEventIndex, dTimestampArray[iEventIndex], iArmArray[iEventIndex], bFedArray[iEventIndex]));
 		// END DEBUG
-		newEvent = gcnew MouseLLEvent(dTimestampArray[iEventIndex], bFedArray[iEventIndex], iArmArray[iEventIndex], nullptr, nullptr);
+		newEvent = gcnew MouseLLEvent(dTimestampArray[iEventIndex], bFedArray[iEventIndex], iArmArray[iEventIndex], nullptr, nullptr, new_EventID);
+		new_EventID++;
 		firstEvent = newEvent;
 		Count++;
 		// get ready for remaining events
@@ -649,7 +666,8 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			//								iEventIndex, dTimestampArray[iEventIndex], iArmArray[iEventIndex], bFedArray[iEventIndex]));
 			//// END DEBUG
 			// create new event, with pointer to previous
-			newEvent = gcnew MouseLLEvent(dTimestampArray[iEventIndex], bFedArray[iEventIndex], iArmArray[iEventIndex], prevEvent, nullptr);
+			newEvent = gcnew MouseLLEvent(dTimestampArray[iEventIndex], bFedArray[iEventIndex], iArmArray[iEventIndex], prevEvent, nullptr, new_EventID);
+			new_EventID++;
 			// increment count
 			Count++;
 			// set previous event "next" pointer to this

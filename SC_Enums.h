@@ -9,13 +9,15 @@ public enum class SC_STATE {
 	SCS_PLAY_NOREC,				// playing & no recording
 	SCS_NOPLAY_REC,				// no playing & recording
 	SCS_NOPLAY_NOREC,			// no playing & no recording
-	SCS_NONE,			// no playing & no recording
+	SCS_NONE,					// no playing & no recording
 };
 
 public enum class SC_SEQ {
 	SCQ_ADDED,					// added an event
 	SCQ_REMOVED,				// removed an event
 	SCQ_CHANGED,				// changed an event
+	SCQ_LOADED,				    // loaded event sequence
+	SCQ_NEW,				    // created new sequence
 	SCQ_NONE,					// no event change
 };
 
@@ -34,6 +36,7 @@ public enum class SC_REASON {
 	SCR_GRID,					// changed because of selecting on grid
 	SCR_NUMPAD,					// change because of numberpad
 	SCR_LOADSEQ,				// changed because of loading sequence
+	SCR_NEWSEQ,				// changed because of loading sequence
 	SCR_NONE,					// none (should not happen??)
 };
 

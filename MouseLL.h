@@ -6,7 +6,7 @@ ref class MouseLLEvent : public System::Object
 {
 public:
 	MouseLLEvent(void);
-	MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent);
+	MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent, int newEventID);
 
 // -- override
      virtual System::String^ ToString() override 
@@ -22,7 +22,8 @@ private:
 	// pointers
 	MouseLLEvent^ prevEvent;
 	MouseLLEvent^ nextEvent;
-
+	// ID
+	int EventID;
 
 
 public:
@@ -38,6 +39,7 @@ public:
 	void getAll(double* p_dTimestamp, int* p_iArm, bool* p_bFed)
 		{*p_dTimestamp = dTimestamp; *p_iArm = iArm; *p_bFed = bFed;};
 
+	int getEventID(void){return EventID;}
 	// -----------------------------------------------------set values
 	// event params
 	void setArm(int iNewArm){iArm = iNewArm;}
@@ -106,6 +108,7 @@ private:
 	// max movie time
 	double dMaxMovieSecs;
 
+	int new_EventID;
 // methods
 public: 
 	// number of nodes
@@ -125,6 +128,10 @@ public:
 
 	// names
 	System::String^ getSequenceName(void){return seqName;}
+
+	// first and last
+	MouseLLEvent^ getFirstEvent(void){return firstEvent;};
+	MouseLLEvent^ getLastEvent(void){return lastEvent;};
 private:
 	// create events
 	MouseLLEvent^ _createEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent);

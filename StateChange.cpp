@@ -30,10 +30,10 @@ System::Void StateChange::_InitRequired(void)
 System::Void StateChange::_DefaultAll(void)
 {
 	directionX= SC_DIR::SCD_NONE;
-	state =		SC_STATE::SCS_NONE;
+	stateX =	SC_STATE::SCS_NONE;
 	seqX =		SC_SEQ::SCQ_NONE;
 	eventX =	SC_EVENT::SCE_NONE;
-	reason =	SC_REASON::SCR_NONE;
+	reasonX =	SC_REASON::SCR_NONE;
 
 	return System::Void();
 }
@@ -47,6 +47,7 @@ System::Void StateChange::_DefaultAll(void)
 		scEvents[index]->x_type = new_x_type;
 		scEvents[index]->x_event = new_x_event;
 		scEvents[index]->x_time = new_x_time;
+		scEvents[index]->x_EventID = new_x_event->getEventID();
 	}
 #pragma endregion
 
