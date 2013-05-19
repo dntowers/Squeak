@@ -34,6 +34,8 @@ ref class StateChange : public System::Object
 public:
 
 	StateChange(void);
+	StateChange(int new_StateID);
+
 #pragma region Constructors: 
 	//StateChange(SC_STATE statex, SC_DIR dirx, SC_REASON reasonx, double tstart, double tend);
 #pragma endregion
@@ -43,6 +45,7 @@ public:
 	static const int SCI_NEXT	= 2;
 
 	// ------------------------------------------------------properties
+	int StateID;
 	// ---- state values
 	SC_DIR	  directionX;	// direction change
 	SC_STATE  stateX;		// play / record state

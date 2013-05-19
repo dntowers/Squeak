@@ -71,7 +71,7 @@ namespace Squeak {
 			// mouse events linked list
 			mouseLL = nullptr;
 			// state change stack
-			stateStack = nullptr;
+			stateLL = nullptr;
 			
 
 
@@ -164,7 +164,7 @@ namespace Squeak {
 		// MouseEvents^ mouseEvents; OLD SEQUENCE
 		MouseLL^ mouseLL;
 		// state change stack
-		StateChangeStack^ stateStack;
+		StateChangeLL^ stateLL;
 
 #pragma endregion
 	

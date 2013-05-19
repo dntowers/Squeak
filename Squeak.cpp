@@ -7,7 +7,7 @@
 #include "MouseEvent.h"
 #include "MouseLL.h"		// hand made linked list
 #include "StateChange.h"
-#include "StateChangeStack.h"
+#include "StateChangeLL.h"
 #include "FormTextInput.h"
 #include "Form1.h"
 #include "WTypes.h"
@@ -292,11 +292,11 @@ namespace Squeak
 					#ifdef STATE_CHANGE
 						try
 						{
-							stateStack = gcnew StateChangeStack();
+							stateLL = gcnew StateChangeLL();
 						}
 						catch (OutOfMemoryException ^e)
 						{
-							MessageBox::Show( String::Format("New StateChangeStack: OutOfMemoryException Handler: {0}", e) );
+							MessageBox::Show( String::Format("New StateChangeLL: OutOfMemoryException Handler: {0}", e) );
 							bAddedOK = false;
 						}
 					#endif
@@ -308,7 +308,7 @@ namespace Squeak
 						// add the new single event
 						#ifdef STATE_CHANGE
 								// add load sequence state change
-								stateStack->add_event_newSequence(mouseLL->getFirstEvent());
+								stateLL->add_event_newSequence(mouseLL->getFirstEvent());
 						#endif
 					}
 				}else
@@ -329,16 +329,16 @@ namespace Squeak
 					#ifdef STATE_CHANGE
 						try
 						{
-							stateStack = gcnew StateChangeStack();
+							stateLL = gcnew StateChangeLL();
 						}
 						catch (OutOfMemoryException ^e)
 						{
-							MessageBox::Show( String::Format("New StateChangeStack: OutOfMemoryException Handler: {0}", e) );
+							MessageBox::Show( String::Format("New StateChangeLL: OutOfMemoryException Handler: {0}", e) );
 							bAddedOK = false;
 						}
 					#endif
 
-					// stateStack = gcnew StateChangeStack();
+					
 				}
 				// add to sequence name text box
 				if(bAddedOK)
@@ -395,11 +395,11 @@ namespace Squeak
 				#ifdef STATE_CHANGE
 					try
 					{
-						stateStack = gcnew StateChangeStack();
+						stateLL = gcnew StateChangeLL();
 					}
 					catch (OutOfMemoryException ^e)
 					{
-						MessageBox::Show( String::Format("New StateChangeStack: OutOfMemoryException Handler: {0}", e) );
+						MessageBox::Show( String::Format("New StateChangeLL: OutOfMemoryException Handler: {0}", e) );
 						bAddedOK = false;
 					}
 				#endif
@@ -422,7 +422,7 @@ namespace Squeak
 							// add load sequence state change
 							MouseLLEvent^ firstEvent = mouseLL->getFirstEvent();
 							MouseLLEvent^ lastEvent = mouseLL->getLastEvent();
-							stateStack->add_event_loadSequence(firstEvent, lastEvent, firstEvent->getNextEvent());
+							stateLL->add_event_loadSequence(firstEvent, lastEvent, firstEvent->getNextEvent());
 						#endif
 					}else
 					{
@@ -431,8 +431,8 @@ namespace Squeak
 						delete mouseLL;
 						mouseLL = nullptr;
 						#ifdef STATE_CHANGE
-							delete stateStack;
-							stateStack = nullptr;
+							delete stateLL;
+							stateLL = nullptr;
 						#endif
 
 					}

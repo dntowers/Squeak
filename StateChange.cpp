@@ -8,6 +8,14 @@ StateChange::StateChange(void)
 	_DefaultAll();
 }
 
+StateChange::StateChange(int new_StateID)
+{
+	_InitRequired();
+	_DefaultAll();
+
+	StateID = new_StateID;
+}
+
 
 #pragma region Initialization
 
