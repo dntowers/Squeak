@@ -168,6 +168,7 @@ void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
 			recentEvent = firstEvent;
 			bReturn =  true;
 		}
+
 		return bReturn;
 		
 	}
@@ -752,6 +753,43 @@ void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
 	}
 #pragma endregion
 
+#pragma region test events
+	// test if event prior to given is the first event
+	bool MouseLL::IsPreviousFirst(MouseLLEvent^% testEvent)
+	{
+		MouseLLEvent^ previousEvent = testEvent->getPreviousEvent();
+		if(previousEvent == nullptr)
+		{
+			testEvent = nullptr;
+			return false;
+		}
+		else
+		{
+			if(previousEvent == firstEvent)
+				return true;
+			else
+				return false;
+		}
+	}
+	// test if event after to given is the last event
+	bool MouseLL::IsNextLast(MouseLLEvent^% testEvent)
+	{
+		MouseLLEvent^ nextEvent = testEvent->getNextEvent();
+		if(nextEvent == nullptr)
+		{
+			testEvent = nullptr;
+			return false;
+		}
+		else
+		{
+			if(nextEvent == lastEvent)
+				return true;
+			else
+				return false;
+		}
+	}
+#pragma endregion
+
 #pragma region check integrity
 	// check integrity of list, including timestamps
 	ML_ERR MouseLL::_CheckIntegrity(MouseLLEvent^ refMouseEvent, bool bCheckNoNodes)
@@ -945,3 +983,6 @@ void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
 
 	}
 #pragma endregion
+
+
+

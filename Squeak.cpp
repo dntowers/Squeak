@@ -4,7 +4,6 @@
 #include <math.h>
 #include "TimeState.h"
 #include "BtnArray.h"
-#include "MouseEvent.h"
 #include "MouseLL.h"		// hand made linked list
 #include "StateChange.h"
 #include "StateChangeLL.h"
@@ -710,7 +709,7 @@ namespace Squeak
 					
 				// add new event - ADD BOOLEANS BEFORE UPDATE
 				mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
-					
+
 				// update form controls
 				UpdateFormEventTimes();
 			}
@@ -737,112 +736,6 @@ namespace Squeak
 
 }
 
-// Number pad down
-namespace Squeak
-{
-
-	//public ref struct buttonArray
-	//{
-	//	System::Windows::Forms::Button^  btn;
-	//	bool bOn;
-	//	Keys btnKeyCode;
-	//};
-
-	// number pad number key down
-	System::Void Form1::NumPadDown(System::Windows::Forms::KeyEventArgs^  e){
-
-		_KeyboardSetButtonState(e);
-
-		//int iKeysDown = 0;
-		//// DEBUG
-		////		System::Diagnostics::Trace::WriteLine("Checking Keys:");
-		//
-		//// iterate through buttons
-		//for(int i = 0; i < 10; i++)
-		//{
-		//	if(e->KeyCode == btnArray[i]->btnKeyCode)
-		//	{
-		//		// key pressed, send array ID						
-		//		NumButtonDown(i,e); 
-		//		iKeysDown++; // keep track of keys down
-
-		//		//System::Diagnostics::Trace::WriteLine(e->ToString());
-		//	}else
-		//	{
-		//		// key NOT pressed, send array ID						
-		//		NumButtonUp(i); 
-		//	}
-		//	
-		//}
-		// DEBUG
-		//System::Diagnostics::Trace::WriteLine(iKeysDown);
-	}
-
-	//// called if button is down
-	//System::Void Form1::NumButtonDown(int iButtonDownIndex, System::Windows::Forms::KeyEventArgs^  e) 
-	//{
-	//	bool bControl = e->Control;
-
-	//	// check this is not the same key
-	//	//if(iCurrentKey != iButtonDownIndex)
-	//	if((iCurrentKey != iButtonDownIndex) || (bControl != btnArray[iCurrentKey]->bFeeding))
-	//	{
-	//		// NEW KEY!
-	//		Color newColor = colorButtonOn;
-	//		bool bIsFeeding = false;
-	//		// set state
-	//		btnArray[iButtonDownIndex]->bOn = true;
-	//		
-	//		// check feeding
-	//		if(btnArray[iButtonDownIndex]->btn != nullptr)
-	//		{
-	//			if(bControl) // check for feeding
-	//			{
-	//				newColor = colorButtonFeeding;
-	//				bIsFeeding = true;
-	//			}
-	//			btnArray[iButtonDownIndex]->btn->BackColor = newColor;
-	//			btnArray[iButtonDownIndex]->bFeeding = bIsFeeding;
-	//		}
-
-	//		// set as current key
-	//		iCurrentKey = iButtonDownIndex;
-
-	//		//  ------------------------------------------------------ IF Recording, Add Event --------------------
-	//		if(bRecording)
-	//		{
-	//			// addEvent(double dNewTime, bool bNewFed, int iNewArm)
-	//			if(mouseLL != nullptr)
-	//			{
-	//				// OLD SEQUENCE
-	//				// add the event
-	//				// mouseEvents->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
-	//				
-	//				// add new event - ADD BOOLEANS BEFORE UPDATE
-	//				mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
-	//				
-	//				// update form controls
-	//				UpdateFormEventTimes();
-	//			}
-	//				
-	//		}
-	//	}
-	//}
-
-	//// called if button is not down
-	//System::Void Form1::NumButtonUp(int iButtonUpIndex)
-	//{
-	//		// set state
-	//		btnArray[iButtonUpIndex]->bOn = false;
-	//		btnArray[iButtonUpIndex]->bFeeding = false;
-
-	//		// set color if direction key
-	//		if(btnArray[iButtonUpIndex]->btn != nullptr)
-	//			btnArray[iButtonUpIndex]->btn->BackColor = colorButtonNormal;
-
-	//}
-
-}
 // grid functions
 namespace Squeak {
 

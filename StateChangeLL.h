@@ -36,6 +36,8 @@ private:
 
 #pragma region Event Adds
 public:
+	// add an event
+	System::Void add_event(MouseLLEvent^ new_Event, EV_TYPE evType, SC_STATE prState, SC_REASON reason, MouseLLEvent^ firstEvent, MouseLLEvent^ lastEvent);
 	// occurs with new sequence, events may be empty
 	System::Void add_event_newSequence(MouseLLEvent^ new_firstEvent);
 	// occurs with load sequence

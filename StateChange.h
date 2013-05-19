@@ -9,6 +9,7 @@ public enum class EV_TYPE {
 	EV_LAST,		// last event
 	EV_MIDDLE,		// between first and last
 	EV_NULL,		// null point
+	EV_NONE,		// no info
 };
 
 // used for origin, dest, next events to 
@@ -17,7 +18,7 @@ ref class scEvent : public System::Object
 public:
 	scEvent(void)
 	{
-		x_type = EV_TYPE::EV_NULL;
+		x_type = EV_TYPE::EV_NONE;
 		x_event = nullptr;
 		x_time = -1;		
 	};

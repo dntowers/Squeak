@@ -100,11 +100,10 @@
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="FormTextInput.cpp" />
-    <ClCompile Include="MouseEvent.cpp" />
     <ClCompile Include="MouseLL.cpp" />
     <ClCompile Include="Squeak.cpp" />
     <ClCompile Include="StateChange.cpp" />
-    <ClCompile Include="StateChangeStack.cpp" />
+    <ClCompile Include="StateChangeLL.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -119,12 +118,11 @@
     <ClInclude Include="FormTextInput.h">
       <FileType>CppForm</FileType>
     </ClInclude>
-    <ClInclude Include="MouseEvent.h" />
     <ClInclude Include="MouseLL.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SC_Enums.h" />
     <ClInclude Include="StateChange.h" />
-    <ClInclude Include="StateChangeStack.h" />
+    <ClInclude Include="StateChangeLL.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TimeState.h" />
   </ItemGroup>

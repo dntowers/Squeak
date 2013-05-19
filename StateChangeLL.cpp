@@ -15,7 +15,63 @@ StateChangeLL::StateChangeLL(void)
 
 
 // Sequence: Load
-#pragma region Sequence Adds
+#pragma region Event Adds
+// add an event
+System::Void StateChangeLL::add_event(MouseLLEvent^ new_Event, EV_TYPE evType, SC_STATE prState, SC_REASON reason, MouseLLEvent^ firstEvent, MouseLLEvent^ lastEvent)
+{
+	if(new_Event == nullptr)
+	{
+		System::Windows::Forms::MessageBox::Show("Warning - New Event sent with null pointer");
+	}else
+	{
+		MouseLLEvent^ prev_Event = new_Event->getPreviousEvent();
+		MouseLLEvent^ next_Event = new_Event->getNextEvent();
+
+
+		// make new state change object
+		StateChange^ newChange = gcnew StateChange(next_StateID);
+
+		// ---------- add conditions
+		newChange->seqX	=	 SC_SEQ::SCQ_ADDED;
+		newChange->reasonX = reason;
+		newChange->stateX  = prState;
+
+		// ----- add current event
+		// event
+		newChange->set_scEvent(StateChange::SCI_ORIGIN, evType, new_Event, new_Event->getTimestamp());
+		// time
+		newChange->scTimes[StateChange::SCI_ORIGIN] = new_Event->getTimestamp();
+		// has
+		_AddEventToHash(new_Event);
+
+		
+		// ----- check additional
+		if(evType != EV_TYPE::EV_LAST)
+		{
+			// -- has a next event
+			// time
+			newChange->scTimes[StateChange::SCI_NEXT] = next_Event->getTimestamp();
+			// has
+			_AddEventToHash(next_Event);
+
+			if(next_Event == lastEvent)
+			{
+				// add last as next
+				newChange->set_scEvent(StateChange::SCI_NEXT, EV_TYPE::EV_LAST, next_Event, next_Event->getTimestamp());
+			}else
+			{
+				// add middle as next
+				newChange->set_scEvent(StateChange::SCI_NEXT, EV_TYPE::EV_MIDDLE, next_Event, next_Event->getTimestamp());			
+			}
+		}
+		
+		// ADD HERE
+		stateChanges->AddFirst(newChange);
+		next_StateID++;
+
+	}
+}
+
 // occurs with new sequence, events may be empty
 System::Void StateChangeLL::add_event_newSequence(MouseLLEvent^ new_firstEvent)
 {
@@ -25,7 +81,7 @@ System::Void StateChangeLL::add_event_newSequence(MouseLLEvent^ new_firstEvent)
 	}else
 	{
 		// make new state change object
-		StateChange^ newChange = gcnew StateChange();
+		StateChange^ newChange = gcnew StateChange(next_StateID);
 
 		// ---------- add times
 		newChange->scTimes[StateChange::SCI_ORIGIN] = new_firstEvent->getTimestamp();
@@ -41,6 +97,7 @@ System::Void StateChangeLL::add_event_newSequence(MouseLLEvent^ new_firstEvent)
 
 
 		// ADD HERE
+		stateChanges->AddFirst(newChange);
 		next_StateID++;
 	}
 	return System::Void();
@@ -57,7 +114,7 @@ System::Void StateChangeLL::add_event_loadSequence(MouseLLEvent^ new_firstEvent,
 	}else
 	{
 		// make new state change object
-		StateChange^ newChange = gcnew StateChange();
+		StateChange^ newChange = gcnew StateChange(next_StateID);
 	
 		// ---------- add conditions
 		newChange->seqX	=	 SC_SEQ::SCQ_LOADED;
@@ -95,6 +152,7 @@ System::Void StateChangeLL::add_event_loadSequence(MouseLLEvent^ new_firstEvent,
 		_AddEventToHash(new_nextEvent);
 
 		// ADD HERE
+		stateChanges->AddFirst(newChange);
 		next_StateID++;
 
 	}

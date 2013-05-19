@@ -109,6 +109,10 @@ private:
 	double dMaxMovieSecs;
 
 	int new_EventID;
+
+	#ifdef STATE_CHANGE
+		
+	#endif
 // methods
 public: 
 	// number of nodes
@@ -132,6 +136,10 @@ public:
 	// first and last
 	MouseLLEvent^ getFirstEvent(void){return firstEvent;};
 	MouseLLEvent^ getLastEvent(void){return lastEvent;};
+
+	// test events
+	bool IsPreviousFirst(MouseLLEvent^% testEvent);
+	bool IsNextLast(MouseLLEvent^% testEvent);
 private:
 	// create events
 	MouseLLEvent^ _createEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent);

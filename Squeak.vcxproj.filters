@@ -47,9 +47,6 @@
     <ClCompile Include="TimeState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MouseEvent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FormTextInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -59,7 +56,7 @@
     <ClCompile Include="StateChange.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StateChangeStack.cpp">
+    <ClCompile Include="StateChangeLL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -79,9 +76,6 @@
     <ClInclude Include="BtnArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MouseEvent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FormTextInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -94,7 +88,7 @@
     <ClInclude Include="SC_Enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StateChangeStack.h">
+    <ClInclude Include="StateChangeLL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

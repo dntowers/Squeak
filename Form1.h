@@ -1010,7 +1010,7 @@ private:
 
 #pragma region numpad change
 		// number pad button down
-		void NumPadDown(System::Windows::Forms::KeyEventArgs^  e);
+		void NumPadDown(System::Windows::Forms::KeyEventArgs^  e){_KeyboardSetButtonState(e);}
 		//void NumButtonDown(int iButtonDownIndex,System::Windows::Forms::KeyEventArgs^  e); // called if button is down
 		//void NumButtonUp(int iButtonUpIndex);	  // called if button is not down
 //		void NumPadUp(int iButtonArrayIndex);
