@@ -21,6 +21,7 @@ namespace Squeak {
 			//
 			//TODO: Add the constructor code here
 			//
+			this->AcceptButton = buttonOK;
 		}
 
 	protected:

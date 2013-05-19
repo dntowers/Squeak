@@ -56,6 +56,9 @@
     <ClCompile Include="MouseLL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StateChange.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Form1.h">
@@ -82,6 +85,9 @@
     <ClInclude Include="MouseLL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="StateChange.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -90,6 +96,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Form1.resX">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormTextInput.resx">
       <Filter>Resource Files</Filter>
     </EmbeddedResource>
   </ItemGroup>

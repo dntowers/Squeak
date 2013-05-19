@@ -7,17 +7,17 @@ Controls:
 Enable Save sequence button
 	New sequence
 	Start with record
-	Load
-New sequence default to movie name + "_seq"
+	X Load
+X New sequence default to movie name + "_seq"
 No new sequence without movie
 No load without movie
 
 Sequence / Events:
-Add: new sequence
-	send movie name with new sequence		
-Add: save sequence
-	add parameters (movie name, sequence name)
-Load:
-	check for existing
-	check movie name match
+X Add: new sequence
+	X send movie name with new sequence		
+X Add: save sequence
+	X add parameters (movie name, sequence name)
+X Load:
+	X check for existing
+	X check movie name match
 X Check for existing sequence when closing program

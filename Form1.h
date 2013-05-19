@@ -791,8 +791,8 @@ private: System::Windows::Forms::Button^  btnStepBack;
 			{axWindowsMediaPlayer1->Ctlcontrols->currentPosition = dPositionSecs;}
 #pragma endregion
 
-#pragma region Form Events
 private:
+#pragma region Form Events: sequence buttons
 		// sequence load, new, save
 		System::Void btnSequenceSave_Click(System::Object^  sender, System::EventArgs^  e) {
 			if(mouseLL != nullptr)
@@ -814,30 +814,8 @@ private:
 			Sequence_New(false);
 		 }
 
-		// toggle between play and record events
-		System::Void btnRecordEvents_Click(System::Object^  sender, System::EventArgs^  e) {
-			ToggleRecording();
-		 }
-
-		// timer
-		System::Void timerControl_Tick(System::Object^  sender, System::EventArgs^  e) {
-			// run code for timer tick
-			TimerTick(e);
-		 }
-
-		// clicked load button
-		System::Void btnGetVideoFileName_Click(System::Object^  sender, System::EventArgs^  e) {
-			if ( openFileDialogVideo->ShowDialog() == ::System::Windows::Forms::DialogResult::OK )
-			{
-				LoadVideoFile(openFileDialogVideo->FileName);
-			}
-
-		 }
-		// clicked on form
-		System::Void Form1_MouseClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-			if(btnSelected != nullptr)
-				Form_Mouse_Pressed(e);
-		 }
+#pragma endregion
+#pragma region Form Events: button click
 		// click indicator buttons
 		System::Void btn9_Click(System::Object^  sender, System::EventArgs^  e) {
 			DirectionButtonPressed(btn9);
@@ -863,6 +841,50 @@ private:
 		System::Void btn6_Click(System::Object^  sender, System::EventArgs^  e) {
 			DirectionButtonPressed(btn6);
 		 }
+#pragma endregion
+
+#pragma region Form Events: data grid
+		// single click row
+		System::Void dataGridViewEvents_RowHeaderMouseClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellMouseEventArgs^  e) {
+			if(e->Button == System::Windows::Forms::MouseButtons::Right)
+			{
+				RowClicked_Right(e->RowIndex);
+			}
+			if(e->Button == System::Windows::Forms::MouseButtons::Left)
+			{
+				RowClicked_Left(e->RowIndex);
+			}
+		}
+		// double click row
+		System::Void dataGridViewEvents_RowHeaderMouseDoubleClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellMouseEventArgs^  e) {
+		}
+#pragma endregion
+
+#pragma region Form Events: other
+		// toggle between play and record events
+		System::Void btnRecordEvents_Click(System::Object^  sender, System::EventArgs^  e) {
+			ToggleRecording();
+		 }
+
+		// timer
+		System::Void timerControl_Tick(System::Object^  sender, System::EventArgs^  e) {
+			// run code for timer tick
+			TimerTick(e);
+		 }
+
+		// clicked load button
+		System::Void btnGetVideoFileName_Click(System::Object^  sender, System::EventArgs^  e) {
+			if ( openFileDialogVideo->ShowDialog() == ::System::Windows::Forms::DialogResult::OK )
+			{
+				LoadVideoFile(openFileDialogVideo->FileName);
+			}
+
+		 }
+		// clicked on form
+		System::Void Form1_MouseClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+			if(btnSelected != nullptr)
+				Form_Mouse_Pressed(e);
+		 }
 		// closing form
 		System::Void Form1_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e) {
 			// check for dirty sequence
@@ -883,21 +905,6 @@ private:
 			if(!WMP_IsPlaying())
 				((WMPLib::IWMPControls2^)axWindowsMediaPlayer1->Ctlcontrols)->step(-1);
 		}
-		// single click row
-		System::Void dataGridViewEvents_RowHeaderMouseClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellMouseEventArgs^  e) {
-			if(e->Button == System::Windows::Forms::MouseButtons::Right)
-			{
-				RowClicked_Right(e->RowIndex);
-			}
-			if(e->Button == System::Windows::Forms::MouseButtons::Left)
-			{
-				RowClicked_Left(e->RowIndex);
-			}
-		}
-		// double click row
-		System::Void dataGridViewEvents_RowHeaderMouseDoubleClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellMouseEventArgs^  e) {
-		}
-
 
 #pragma endregion
 
@@ -999,10 +1006,10 @@ private:
 #pragma endregion
 
 #pragma region numpad change
+		// number pad button down
 		void NumPadDown(System::Windows::Forms::KeyEventArgs^  e);
-		//void ResetButtons(void);
-		void NumButtonDown(int iButtonDownIndex,System::Windows::Forms::KeyEventArgs^  e); // called if button is down
-		void NumButtonUp(int iButtonUpIndex);	  // called if button is not down
+		//void NumButtonDown(int iButtonDownIndex,System::Windows::Forms::KeyEventArgs^  e); // called if button is down
+		//void NumButtonUp(int iButtonUpIndex);	  // called if button is not down
 //		void NumPadUp(int iButtonArrayIndex);
 #pragma endregion
 
@@ -1023,7 +1030,20 @@ private:
 		System::Void RowClicked_Left(int zeroRowIndex);
 #pragma endregion
 
+#pragma region arm indicator change events
+private:
+	// set button from key events
+	System::Void _KeyboardSetButtonState(System::Windows::Forms::KeyEventArgs^  e);
+	// set button from forced state, prevents recording
+	System::Void _StateSetButtonState(int iArm, bool bFeeding);
+	// sets visible button state (bControl == feeding)
+	System::Void _SetButtonState(int iArm, bool bFeeding, bool bRecording);
+	// use to ket gey codes from button down
+	// int _GetButtonStateFromKeyboard(System::Windows::Forms::KeyEventArgs^  e);
+#pragma endregion
+
 #pragma region recording events
+private:
 		void ToggleRecording(void);
 		// check if OK to create new sequence (e.g. sequence exists & is dirty, checked overwrite or saved)
 		bool Sequence_OK_New(bool* p_bCancel); 

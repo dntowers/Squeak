@@ -195,7 +195,8 @@ namespace Squeak
 				// check if number pad
 				if ( e->KeyCode >= Keys::NumPad1 && e->KeyCode <= Keys::NumPad9 )
 				{
-					NumPadDown(e);
+					_KeyboardSetButtonState(e);
+					//NumPadDown(e);
 				}else
 				{
 					bKeyHandled = true;
@@ -533,7 +534,7 @@ namespace Squeak
 		}
 	}
 }
-// Events
+// Form Events
 namespace Squeak
 {
 	// called when timer ticks
@@ -562,9 +563,131 @@ namespace Squeak
 
 }
 
+// arm indicator change events
+namespace Squeak
+{
+	// set button from key events
+	System::Void Form1::_KeyboardSetButtonState(System::Windows::Forms::KeyEventArgs^  e)
+	{
+		// check whether control was pressed (feeding)
+		bool bControl = e->Control;
+
+		// iterate through buttons
+		int iButtonIndex = 0;
+		int iButtonOn = -1;
+
+		while((iButtonIndex < 10) && (iButtonOn < 0))
+		{
+			if(e->KeyCode == btnArray[iButtonIndex]->btnKeyCode)
+				iButtonOn = iButtonIndex;
+			// iterate index
+			iButtonIndex++;
+		}
+
+		// set the button state, pass whether recording
+		_SetButtonState(iButtonOn, bControl, bRecording);
+	}
+
+	// set button from forced state
+	System::Void Form1::_StateSetButtonState(int iArm, bool bFeeding)
+	{
+		// set the button state, do not allow recording when passed state
+		_SetButtonState(iArm, bFeeding, false);
+
+	}
+
+	// sets visible button state (bControl == feeding), e = nullptr if not user generated
+	System::Void Form1::_SetButtonState(int iArm, bool bFeeding, bool bRecording)
+	{
+		Color newColor;
+		bool bIsFeeding;
+		int iButtonIndex;
+		// check if this is a state change
+		if((iCurrentKey != iArm) || (bFeeding != btnArray[iArm]->bFeeding))
+		{
+			// change from current state
+			// iterate through buttons
+			for(iButtonIndex = 0; iButtonIndex < 10; iButtonIndex++)
+			{
+				// check if this matches arm
+				if(iButtonIndex == iArm)
+				{
+					// button matches arm
+					btnArray[iButtonIndex]->bOn = true;
+					// check if actual button
+					if(btnArray[iButtonIndex]->btn != nullptr)
+					{
+						// represents actual button - turn on
+						if(bFeeding)
+						{
+							// feeding state
+							newColor = colorButtonFeeding;
+							bIsFeeding = true;
+						}else
+						{
+							// not feeding state
+							newColor = colorButtonOn;
+							bIsFeeding = false;
+						}
+						// set button params
+						btnArray[iButtonIndex]->btn->BackColor = newColor;
+						btnArray[iButtonIndex]->bFeeding = bIsFeeding;
+					}
+				}else
+				{
+					// no match - turn off
+					btnArray[iButtonIndex]->bOn = false; // turn off
+					btnArray[iButtonIndex]->bFeeding = false;
+					if(btnArray[iButtonIndex]->btn != nullptr)
+						btnArray[iButtonIndex]->btn->BackColor = colorButtonNormal;
+
+				} // end if/then/else for button - arm
+				
+			} // end iteration through buttons
+
+		} // end check for state change	
+
+		// ----- set as current key
+		iCurrentKey = iArm;
 
 
-// keypress
+		//  ---------------- IF Recording, Add Event --------------------
+		if(bRecording)
+		{
+			// addEvent(double dNewTime, bool bNewFed, int iNewArm)
+			if(mouseLL != nullptr)
+			{
+					
+				// add new event - ADD BOOLEANS BEFORE UPDATE
+				mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
+					
+				// update form controls
+				UpdateFormEventTimes();
+			}
+					
+		}
+
+	}
+	
+	// use to ket gey codes from button down - REMOVE
+	//int _GetButtonStateFromKeyboard(System::Windows::Forms::KeyEventArgs^  e)
+	//{
+	//	// iterate through buttons
+	//	int iButtonIndex = 0;
+	//	int iButton = -1;
+
+	//	while((iButtonIndex < 10) && (iButton < 0))
+	//	{
+	//		if(e->KeyCode == btnArray[iButtonIndex]->btnKeyCode)
+	//			iButton = iButtonIndex
+	//		// iterate index
+	//		iButtonIndex++;
+	//	}
+	//}
+
+}
+
+// Number pad down
 namespace Squeak
 {
 
@@ -578,94 +701,96 @@ namespace Squeak
 	// number pad number key down
 	System::Void Form1::NumPadDown(System::Windows::Forms::KeyEventArgs^  e){
 
-		int iKeysDown = 0;
-		// DEBUG
-		//		System::Diagnostics::Trace::WriteLine("Checking Keys:");
-		
-		// iterate through buttons
-		for(int i = 0; i < 10; i++)
-		{
-			if(e->KeyCode == btnArray[i]->btnKeyCode)
-			{
-				// key pressed, send array ID						
-				NumButtonDown(i,e); 
-				iKeysDown++; // keep track of keys down
+		_KeyboardSetButtonState(e);
 
-				//System::Diagnostics::Trace::WriteLine(e->ToString());
-			}else
-			{
-				// key NOT pressed, send array ID						
-				NumButtonUp(i); 
-			}
-			
-		}
+		//int iKeysDown = 0;
+		//// DEBUG
+		////		System::Diagnostics::Trace::WriteLine("Checking Keys:");
+		//
+		//// iterate through buttons
+		//for(int i = 0; i < 10; i++)
+		//{
+		//	if(e->KeyCode == btnArray[i]->btnKeyCode)
+		//	{
+		//		// key pressed, send array ID						
+		//		NumButtonDown(i,e); 
+		//		iKeysDown++; // keep track of keys down
+
+		//		//System::Diagnostics::Trace::WriteLine(e->ToString());
+		//	}else
+		//	{
+		//		// key NOT pressed, send array ID						
+		//		NumButtonUp(i); 
+		//	}
+		//	
+		//}
 		// DEBUG
 		//System::Diagnostics::Trace::WriteLine(iKeysDown);
 	}
 
-	// called if button is down
-	System::Void Form1::NumButtonDown(int iButtonDownIndex, System::Windows::Forms::KeyEventArgs^  e) 
-	{
-		bool bControl = e->Control;
+	//// called if button is down
+	//System::Void Form1::NumButtonDown(int iButtonDownIndex, System::Windows::Forms::KeyEventArgs^  e) 
+	//{
+	//	bool bControl = e->Control;
 
-		// check this is not the same key
-		//if(iCurrentKey != iButtonDownIndex)
-		if((iCurrentKey != iButtonDownIndex) || (bControl != btnArray[iCurrentKey]->bFeeding))
-		{
-			// NEW KEY!
-			Color newColor = colorButtonOn;
-			bool bIsFeeding = false;
-			// set state
-			btnArray[iButtonDownIndex]->bOn = true;
-			
-			// check feeding
-			if(btnArray[iButtonDownIndex]->btn != nullptr)
-			{
-				if(bControl) // check for feeding
-				{
-					newColor = colorButtonFeeding;
-					bIsFeeding = true;
-				}
-				btnArray[iButtonDownIndex]->btn->BackColor = newColor;
-				btnArray[iButtonDownIndex]->bFeeding = bIsFeeding;
-			}
+	//	// check this is not the same key
+	//	//if(iCurrentKey != iButtonDownIndex)
+	//	if((iCurrentKey != iButtonDownIndex) || (bControl != btnArray[iCurrentKey]->bFeeding))
+	//	{
+	//		// NEW KEY!
+	//		Color newColor = colorButtonOn;
+	//		bool bIsFeeding = false;
+	//		// set state
+	//		btnArray[iButtonDownIndex]->bOn = true;
+	//		
+	//		// check feeding
+	//		if(btnArray[iButtonDownIndex]->btn != nullptr)
+	//		{
+	//			if(bControl) // check for feeding
+	//			{
+	//				newColor = colorButtonFeeding;
+	//				bIsFeeding = true;
+	//			}
+	//			btnArray[iButtonDownIndex]->btn->BackColor = newColor;
+	//			btnArray[iButtonDownIndex]->bFeeding = bIsFeeding;
+	//		}
 
-			// set as current key
-			iCurrentKey = iButtonDownIndex;
+	//		// set as current key
+	//		iCurrentKey = iButtonDownIndex;
 
-			//  ------------------------------------------------------ IF Recording, Add Event --------------------
-			if(bRecording)
-			{
-				// addEvent(double dNewTime, bool bNewFed, int iNewArm)
-				if(mouseLL != nullptr)
-				{
-					// OLD SEQUENCE
-					// add the event
-					// mouseEvents->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
-					
-					// add new event - ADD BOOLEANS BEFORE UPDATE
-					mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
-					
-					// update form controls
-					UpdateFormEventTimes();
-				}
-					
-			}
-		}
-	}
+	//		//  ------------------------------------------------------ IF Recording, Add Event --------------------
+	//		if(bRecording)
+	//		{
+	//			// addEvent(double dNewTime, bool bNewFed, int iNewArm)
+	//			if(mouseLL != nullptr)
+	//			{
+	//				// OLD SEQUENCE
+	//				// add the event
+	//				// mouseEvents->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
+	//				
+	//				// add new event - ADD BOOLEANS BEFORE UPDATE
+	//				mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
+	//				
+	//				// update form controls
+	//				UpdateFormEventTimes();
+	//			}
+	//				
+	//		}
+	//	}
+	//}
 
-	// called if button is not down
-	System::Void Form1::NumButtonUp(int iButtonUpIndex)
-	{
-			// set state
-			btnArray[iButtonUpIndex]->bOn = false;
-			btnArray[iButtonUpIndex]->bFeeding = false;
+	//// called if button is not down
+	//System::Void Form1::NumButtonUp(int iButtonUpIndex)
+	//{
+	//		// set state
+	//		btnArray[iButtonUpIndex]->bOn = false;
+	//		btnArray[iButtonUpIndex]->bFeeding = false;
 
-			// set color if direction key
-			if(btnArray[iButtonUpIndex]->btn != nullptr)
-				btnArray[iButtonUpIndex]->btn->BackColor = colorButtonNormal;
+	//		// set color if direction key
+	//		if(btnArray[iButtonUpIndex]->btn != nullptr)
+	//			btnArray[iButtonUpIndex]->btn->BackColor = colorButtonNormal;
 
-	}
+	//}
 
 }
 // grid functions
@@ -731,4 +856,6 @@ System::String^ Squeak::Form1::MovieTimeToString(double dMovieTime)
 
 	return String::Format( "{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
 }
+
+
 
