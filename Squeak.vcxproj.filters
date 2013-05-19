@@ -59,6 +59,9 @@
     <ClCompile Include="StateChange.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StateChangeStack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Form1.h">
@@ -86,6 +89,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StateChange.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SC_Enums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StateChangeStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

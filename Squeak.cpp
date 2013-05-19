@@ -6,6 +6,8 @@
 #include "BtnArray.h"
 #include "MouseEvent.h"
 #include "MouseLL.h"		// hand made linked list
+#include "StateChange.h"
+#include "StateChangeStack.h"
 #include "FormTextInput.h"
 #include "Form1.h"
 #include "WTypes.h"

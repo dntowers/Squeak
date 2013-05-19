@@ -67,12 +67,14 @@ namespace Squeak {
 
 			// --- events
 			bRecording = false;
-			// mouseEvents = nullptr; // init event object to null OLD SEQUENCE
+
+			// mouse events linked list
 			mouseLL = nullptr;
-			//mouseEvents = gcnew LinkedList<MouseEvent^>;		    // create list
-			//MouseEvent^ sentinel = gcnew MouseEvent(-1, false, -1); // create sentinel - negative time
-			//mouseEvents->AddFirst(sentinel);					    // add sentinel
-			
+			// unique ID for events
+			iEventID = 0;
+			// state change stack
+			stateStack = gcnew StateChangeStack();
+
 
 
 #pragma region button array
@@ -162,6 +164,10 @@ namespace Squeak {
 		bool bRecording;
 		// MouseEvents^ mouseEvents; OLD SEQUENCE
 		MouseLL^ mouseLL;
+		// state change stack
+		StateChangeStack^ stateStack;
+		// unique ID for events
+		int iEventID;
 
 #pragma endregion
 	
