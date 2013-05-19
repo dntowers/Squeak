@@ -71,7 +71,7 @@ namespace Squeak {
 			// mouse events linked list
 			mouseLL = nullptr;
 			// unique ID for events
-			EventID = 0;
+			iEventID = 0;
 			// state change stack
 			stateStack = gcnew StateChangeStack();
 
@@ -167,7 +167,7 @@ namespace Squeak {
 		// state change stack
 		StateChangeStack^ stateStack;
 		// unique ID for events
-		int EventID;
+		int iEventID;
 
 #pragma endregion
 	

@@ -6,8 +6,8 @@ using namespace System::Collections::Generic;
 ref class MouseEvent : public System::Object
 {
 public:
-	MouseEvent(void, int newEventID);
-	MouseEvent(double dNewTime, bool bFeedState, int iNewArm, int newEventID);
+	MouseEvent(void);
+	MouseEvent(double dNewTime, bool bFeedState, int iNewArm);
 
 	//int getArm(void);
 	//bool getFed(void);
@@ -76,7 +76,7 @@ public:
 	bool Save_Sequence(System::String^ strMovieFileName);
 
 	// ----------------------- change event sequence
-	MouseEvent^ addEvent(double dNewTime, bool bNewFed, int iNewArm, int newEventID);
+	MouseEvent^ addEvent(double dNewTime, bool bNewFed, int iNewArm);
 
 private:
 	// name of current sequence

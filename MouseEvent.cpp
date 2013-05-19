@@ -71,8 +71,7 @@ MouseEvents::MouseEvents(System::String^ newSequenceName, double dInitialTime, b
 	eventRecentAdd = nullptr;
 
 	// add first event
-	EventID++;
-	eventRecentAdd = addEvent(dInitialTime, bInitialFed, iInitialArm, EventID);
+	eventRecentAdd = addEvent(dInitialTime, bInitialFed, iInitialArm);
 
 }
 #pragma endregion
@@ -151,12 +150,12 @@ bool MouseEvents::_SaveSequenceData(System::String^ seqFilePath, System::String^
 // -----------------------------------------------------------------------event change
 #pragma region MouseEvents event changes
 
-MouseEvent^ MouseEvents::addEvent(double dNewTime, bool bNewFed, int iNewArm, int newEventID)
+MouseEvent^ MouseEvents::addEvent(double dNewTime, bool bNewFed, int iNewArm)
 {
 	
 
 	// create new event
-	MouseEvent^ newEvent = gcnew MouseEvent(dNewTime, bNewFed, iNewArm, newEventID);
+	MouseEvent^ newEvent = gcnew MouseEvent(dNewTime, bNewFed, iNewArm);
 
 	
 	// determine if list is empty
