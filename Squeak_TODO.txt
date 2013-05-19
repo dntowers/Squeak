@@ -1,0 +1,23 @@
+// to do
+
+Controls: 
+		X Add: shift for fed at arm
+			X use button array to check if feeding when getting events
+		X Add: begin and end times of sequence (seconds and MM:SS:ss format?)
+Enable Save sequence button
+	New sequence
+	Start with record
+	Load
+New sequence default to movie name + "_seq"
+No new sequence without movie
+No load without movie
+
+Sequence / Events:
+Add: new sequence
+	send movie name with new sequence		
+Add: save sequence
+	add parameters (movie name, sequence name)
+Load:
+	check for existing
+	check movie name match
+X Check for existing sequence when closing program
