@@ -6,7 +6,7 @@ ref class MouseLLEvent : public System::Object
 {
 public:
 	MouseLLEvent(void);
-	MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent);
+	MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent, int EventID);
 
 // -- override
      virtual System::String^ ToString() override 
@@ -22,7 +22,8 @@ private:
 	// pointers
 	MouseLLEvent^ prevEvent;
 	MouseLLEvent^ nextEvent;
-
+	// ID
+	int EventID;
 
 
 public:
@@ -112,9 +113,9 @@ public:
 	int get_Count(void){return Count;}
 
 	// add new events
-	bool addEvent(double dNewTime, bool bNewFeed, int iNewArm);
-	bool addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm);
-	bool addLastEvent(double dNewTime, bool bNewFeed, int iNewArm);
+	bool addEvent(double dNewTime, bool bNewFeed, int iNewArm, int newEventID);
+	bool addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm, int newEventID);
+	bool addLastEvent(double dNewTime, bool bNewFeed, int iNewArm, int newEventID);
 	
 	// tests
 	bool IsBeforeOrAtFirst(double dNewTime){return dNewTime <= firstEvent->getTimestamp();}
@@ -127,7 +128,7 @@ public:
 	System::String^ getSequenceName(void){return seqName;}
 private:
 	// create events
-	MouseLLEvent^ _createEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent);
+	MouseLLEvent^ _createEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent, int newEventID);
 	// replace events
 	bool _replaceEventParams(bool bNewFeed, int iNewArm, MouseLLEvent^ currentEvent);
 	// check integrity of list, including timestamps

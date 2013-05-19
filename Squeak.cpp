@@ -661,7 +661,8 @@ namespace Squeak
 			{
 					
 				// add new event - ADD BOOLEANS BEFORE UPDATE
-				mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
+				EventID++;
+				mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey, EventID);
 					
 				// update form controls
 				UpdateFormEventTimes();

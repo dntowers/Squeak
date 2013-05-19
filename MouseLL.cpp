@@ -85,12 +85,12 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 // buttons
 #pragma region MouseLL add event
 	// add new event
-	bool MouseLL::addEvent(double dNewTime, bool bNewFeed, int iNewArm)
+	bool MouseLL::addEvent(double dNewTime, bool bNewFeed, int iNewArm, int newEventID)
 	{
 		if(Count == 0)
 		{
 			// create event
-			MouseLLEvent^ newLLEvent = _createEvent(dNewTime, bNewFeed, iNewArm, nullptr, nullptr);
+			MouseLLEvent^ newLLEvent = _createEvent(dNewTime, bNewFeed, iNewArm, nullptr, nullptr, newEventID);
 			// set internal pointers
 			firstEvent = newLLEvent;
 			lastEvent = newLLEvent;
@@ -104,7 +104,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			if(IsBeforeOrAtFirst(dNewTime))
 			{
 				// inserted before, or if same time replaced arm and fed
-				if(addFirstEvent(dNewTime, bNewFeed, iNewArm))
+				if(addFirstEvent(dNewTime, bNewFeed, iNewArm, newEventID))
 					Count++;
 			}else
 			{
@@ -112,7 +112,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 				if(IsAfterOrAtLast(dNewTime))
 				{
 					// inserted after, or if same time replaced arm and fed
-					if(addLastEvent(dNewTime, bNewFeed, iNewArm))
+					if(addLastEvent(dNewTime, bNewFeed, iNewArm, newEventID))
 						Count++;
 				}else
 				{
@@ -127,14 +127,14 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		return true;
 	}
 	// add event to beginning
-	bool MouseLL::addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm)
+	bool MouseLL::addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm, int newEventID)
 	{
 		bool bReturn = false;
 		// check if new event time is before first event
 		if(firstEvent->IsDifferentTime(dNewTime))
 		{
 			// not the same time stamp, so create new: _createEvent(...,new_prevEvent, new_nextEvent);
-			MouseLLEvent^ newEvent = _createEvent(dNewTime, bNewFeed, iNewArm, nullptr, firstEvent); //new next = current first
+			MouseLLEvent^ newEvent = _createEvent(dNewTime, bNewFeed, iNewArm, nullptr, firstEvent, newEventID); //new next = current first
 			if(newEvent != nullptr)
 			{
 				// success:
@@ -159,14 +159,14 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	}
 	
 	// add last to beginning
-	bool MouseLL::addLastEvent(double dNewTime, bool bNewFeed, int iNewArm)
+	bool MouseLL::addLastEvent(double dNewTime, bool bNewFeed, int iNewArm, int newEventID)
 	{
 		bool bReturn = false;
 		// check if new event time is before first event
 		if(lastEvent->IsDifferentTime(dNewTime))
 		{
 			// not the same time stamp, so create new: _createEvent(...,new_prevEvent, new_nextEvent);
-			MouseLLEvent^ newEvent = _createEvent(dNewTime, bNewFeed, iNewArm, lastEvent, nullptr); //new previous = current last
+			MouseLLEvent^ newEvent = _createEvent(dNewTime, bNewFeed, iNewArm, lastEvent, nullptr, newEventID); //new previous = current last
 			if(newEvent != nullptr)
 			{
 				// success:
@@ -190,10 +190,10 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	}
 	
 	// create a new event
-	MouseLLEvent^ MouseLL::_createEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ new_prevEvent, MouseLLEvent^ new_nextEvent)
+	MouseLLEvent^ MouseLL::_createEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ new_prevEvent, MouseLLEvent^ new_nextEvent, int newEventID)
 	{
 			// create new event
-			MouseLLEvent^ newEvent = gcnew MouseLLEvent(dNewTime, bNewFeed, iNewArm, new_prevEvent, new_nextEvent);
+			MouseLLEvent^ newEvent = gcnew MouseLLEvent(dNewTime, bNewFeed, iNewArm, new_prevEvent, new_nextEvent, newEventID);
 			return newEvent;
 	}
 	
