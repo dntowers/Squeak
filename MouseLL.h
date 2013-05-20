@@ -1,9 +1,10 @@
 #pragma once
-
-
+#include "QuickMsgBox.h"
+#pragma region MouseLL
 // Linked List mouse event
 ref class MouseLLEvent : public System::Object
 {
+#pragma region MouseLL
 public:
 	MouseLLEvent(void);
 	MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent, int newEventID);
@@ -79,6 +80,7 @@ public enum class ML_ERR {
 	MLL_ERR_LAST_NO_FIRST,			// lastEvent points to event, first doesn't
 };
 
+#pragma endregion
 // ---------------------------------------------------- MouseLL -----------------------------------
 
 // Linked List
@@ -248,6 +250,12 @@ private:
 public:
 	// set up event tracking variables after a load sequence event
 	bool setup_loadSequence(void);
+
+	// set up event tracking variables after first event with record
+	bool setup_loadRecordStart(void);
+
+	// set up event tracking variables after first event with record
+	bool setup_loadNew(void);
 
 private:
 	// debugging for tracking

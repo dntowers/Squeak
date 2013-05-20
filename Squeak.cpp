@@ -2,6 +2,7 @@
 
 
 #include "stdafx.h"
+#include "QuickMsgBox.h"
 #include <math.h>
 #include "TimeState.h"
 #include "BtnArray.h"
@@ -292,6 +293,10 @@ namespace Squeak
 						MessageBox::Show( String::Format("New MouseLL: OutOfMemoryException Handler: {0}", e) );
 						bAddedOK = false;
 					}
+					// set up tracking for new events with first record
+					mouseLL->setup_loadRecordStart();
+					// update form controls
+					UpdateFormEventTimes();
 					// IMPLEMENT NEW STATE CHANCE STACK ???
 					#ifdef STATE_CHANGE
 						try
@@ -328,7 +333,8 @@ namespace Squeak
 						MessageBox::Show( String::Format("New MouseLL: OutOfMemoryException Handler: {0}", e) );
 						bAddedOK = false;
 					}
-
+					// set up for new events
+					mouseLL->setup_loadNew();
 					// IMPLEMENT NEW STATE CHANCE STACK ???
 					#ifdef STATE_CHANGE
 						try

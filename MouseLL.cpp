@@ -112,7 +112,6 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	ev_nextEvent	= nullptr;					// next event
 	ev_currentEvent = nullptr;				// current event
 
-	
 }
 
 MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, double dNewTime, bool bNewFeed, int iNewArm)
@@ -146,6 +145,9 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	ev_prevEvent	= nullptr;					// previous event
 	ev_nextEvent	= nullptr;					// next event
 	ev_currentEvent = nullptr;				// current event
+
+	// ADD NEW EVENT
+	addEvent(dNewTime, bNewFeed, iNewArm);
 
 }
 #pragma endregion
@@ -1175,6 +1177,60 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 
 
 #pragma region setup tracking variable functions
+	// set up event tracking variables when new without record
+	bool MouseLL::setup_loadNew(void)
+	{
+		// constructor for new
+		// MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, double currentMoviePosition);
+
+		// should be no events
+		if(Count != 0)
+		{
+			QuickMsgBox::MBox(L"Started New sequence with {0} existing events", Count);
+		}
+		DEBUG_TRACKING();
+		return true;
+	}
+
+	// set up event tracking variables after first event with record
+	bool MouseLL::setup_loadRecordStart(void)
+	{
+		// constructor for start with record
+		//	MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, 
+		//		double dNewTime, bool bNewFeed, int iNewArm);
+
+
+		if(Count != 1)
+		{
+			QuickMsgBox::MBox(L"Started New sequence by first recording with {0} existing events (should be 1)", Count);
+		}
+
+		// make sure we have events
+		if(firstEvent == nullptr)
+		{
+			QuickMsgBox::MBox(L"Started New Recording sequence with nullptr as firstEvent", Count);
+			return false;
+		}
+
+		// ------- updating with one event, *should* be at actual time
+		// event updates
+		// ev_prevEvent;		
+		// ev_nextEvent;		// only event so no next
+		ev_currentEvent = firstEvent;	// last / current event
+
+		// time updates
+		te_currentTime = firstEvent->getTimestamp();  // time at or past this, not to next yet
+		//te_nextTime;      // no next event
+		//te_prevTime;		// no prior events
+
+		// player time update from constructor
+
+
+		DEBUG_TRACKING();
+		return true;
+		
+	}
+
 	// set up after load
 	bool MouseLL::setup_loadSequence(void)
 	{
