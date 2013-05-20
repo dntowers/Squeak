@@ -39,6 +39,11 @@ public:
 	void getAll(double* p_dTimestamp, int* p_iArm, bool* p_bFed)
 		{*p_dTimestamp = dTimestamp; *p_iArm = iArm; *p_bFed = bFed;};
 
+	// access arm
+	int getArm(void){return iArm;};
+	// access feeding
+	bool getFed(void){return bFed;};
+
 	int getEventID(void){return EventID;}
 	// -----------------------------------------------------set values
 	// event params
@@ -73,6 +78,8 @@ public enum class ML_ERR {
 	MLL_ERR_FIRST_NO_LAST,			// firstEvent points to event, last doesn't
 	MLL_ERR_LAST_NO_FIRST,			// lastEvent points to event, first doesn't
 };
+
+// ---------------------------------------------------- MouseLL -----------------------------------
 
 // Linked List
 ref class MouseLL : public System::Object
@@ -158,6 +165,19 @@ public:
 	// test events
 	bool IsPreviousFirst(MouseLLEvent^% testEvent);
 	bool IsNextLast(MouseLLEvent^% testEvent);
+
+
+	// ----- change events ------
+	// send new event based on normal playing and timer, will not send if not passed next event
+	// this should be SLOW - looks through entire list each time
+	MouseLLEvent^ playEvent_All(double tm_new_player);
+	
+	// send new event based on normal playing and timer, will not send if not passed next event
+	MouseLLEvent^ playEvent_Timer(double tm_new_player);
+
+	// update tracking state for playing event change
+	bool _update_playEvent_All(MouseLLEvent^ event_sent, MouseLLEvent^ event_sent_next, double tm_new_player);
+
 private:
 	// create events
 	MouseLLEvent^ _createEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent);

@@ -26,6 +26,11 @@ setup tracking
 	X Load
 	X new from record
 	X new from button
+
+update player event
+	change in player position --- just go by search now!!!
+	(normal play)
+	(state change)
 update tracking
 	play by events
 	same function for new time?

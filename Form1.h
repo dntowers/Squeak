@@ -49,6 +49,15 @@ namespace Squeak {
 			colorButtonOn = System::Drawing::SystemColors::ButtonHighlight;
 			colorButtonFeeding = System::Drawing::Color::Yellow;
 
+			// data grid
+			colorNormalDataGrid = dataGridViewEvents->DefaultCellStyle->BackColor;
+			colorDisabledDataGrid = System::Drawing::SystemColors::InactiveBorder;
+
+			colorNormalDataGridSelectionForeColor = dataGridViewEvents->DefaultCellStyle->SelectionForeColor;
+			colorNormalDataGridSelectionBackColor = dataGridViewEvents->DefaultCellStyle->SelectionBackColor;
+
+			colorDisabledDataGridSelectionFore = dataGridViewEvents->DefaultCellStyle->ForeColor;
+			colorDisabledDataGridSelectionBack = System::Drawing::SystemColors::InactiveBorder;
 
 			// set dialog box properties
 			openFileDialogVideo->Filter = "WMV files (*.wmv)|*.wmv|All files (*.*)|*.*";
@@ -158,6 +167,16 @@ namespace Squeak {
 		array<buttonArray ^> ^ btnArray;
 		int iCurrentKey;
 
+		// data grid
+		Color colorNormalDataGrid;
+		Color colorDisabledDataGrid;
+
+		Color colorNormalDataGridSelectionForeColor;
+		Color colorNormalDataGridSelectionBackColor;
+
+		Color colorDisabledDataGridSelectionFore;
+		Color colorDisabledDataGridSelectionBack;
+
 		//LinkedList<MouseEvent^>^ mouseEvents;
 		// events
 		bool bRecording;
@@ -204,6 +223,7 @@ private: System::Windows::Forms::DataGridViewTextBoxColumn^  gchArm;
 private: System::Windows::Forms::DataGridViewTextBoxColumn^  gchFed;
 private: System::Windows::Forms::Button^  btnStepForward;
 private: System::Windows::Forms::Button^  btnStepBack;
+private: System::Windows::Forms::CheckBox^  cb_lockButtons;
 
 
 
@@ -268,6 +288,7 @@ private: System::Windows::Forms::Button^  btnStepBack;
 			this->gchFed = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->btnStepForward = (gcnew System::Windows::Forms::Button());
 			this->btnStepBack = (gcnew System::Windows::Forms::Button());
+			this->cb_lockButtons = (gcnew System::Windows::Forms::CheckBox());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->axWindowsMediaPlayer1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->eventLog1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->rateUpDown))->BeginInit();
@@ -668,6 +689,7 @@ private: System::Windows::Forms::Button^  btnStepBack;
 			this->dataGridViewEvents->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(3) {this->gchTime, 
 				this->gchArm, this->gchFed});
 			this->dataGridViewEvents->Location = System::Drawing::Point(753, 182);
+			this->dataGridViewEvents->MultiSelect = false;
 			this->dataGridViewEvents->Name = L"dataGridViewEvents";
 			this->dataGridViewEvents->ReadOnly = true;
 			this->dataGridViewEvents->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
@@ -719,11 +741,26 @@ private: System::Windows::Forms::Button^  btnStepBack;
 			this->btnStepBack->UseVisualStyleBackColor = true;
 			this->btnStepBack->Click += gcnew System::EventHandler(this, &Form1::btnStepBack_Click);
 			// 
+			// cb_lockButtons
+			// 
+			this->cb_lockButtons->AutoSize = true;
+			this->cb_lockButtons->Checked = true;
+			this->cb_lockButtons->CheckState = System::Windows::Forms::CheckState::Checked;
+			this->cb_lockButtons->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.75F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(0)));
+			this->cb_lockButtons->Location = System::Drawing::Point(753, 735);
+			this->cb_lockButtons->Name = L"cb_lockButtons";
+			this->cb_lockButtons->Size = System::Drawing::Size(162, 20);
+			this->cb_lockButtons->TabIndex = 33;
+			this->cb_lockButtons->Text = L"Lock Button Movement";
+			this->cb_lockButtons->UseVisualStyleBackColor = true;
+			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1024, 762);
+			this->Controls->Add(this->cb_lockButtons);
 			this->Controls->Add(this->btnStepBack);
 			this->Controls->Add(this->btnStepForward);
 			this->Controls->Add(this->dataGridViewEvents);

@@ -811,17 +811,6 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	// searches for the node with a time the same or after the event, prior to next event
 	bool MouseLL::_search_NoPreviousNode(double te_testTime, MouseLLEvent^% ev_test_current_event, MouseLLEvent^% ev_test_next_event)
 	{
-		//// --- test for null pointers
-		//if(ev_test_current_event == nullptr)
-		//{
-		//	System::Windows::Forms::MessageBox::Show("_search_NoPreviousNode passed ev_test_current_event==nullptr");
-		//	return false;
-		//}
-		//if(ev_test_next_event == nullptr)
-		//{
-		//	System::Windows::Forms::MessageBox::Show("_search_NoPreviousNode passed ev_test_next_event==nullptr");
-		//	return false;
-		//}
 
 		// --- check for time before first event
 		if(!_test_TimeAfterEvent(te_testTime, firstEvent))
@@ -855,55 +844,6 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		ev_test_current_event = ev_node_current;
 		ev_test_next_event = ev_node_next; // this is the node the time is not equal or greater than
 
-//System::Diagnostics::Trace::WriteLine(System::String::Format("TIME AFTER = {0}", te_testTime));
-//System::String^ strOut("");
-//System::String^ strAppend("");
-//int iIndex = 1;
-//
-//strAppend = System::String::Format("Event {0}: Time = {1}, TimeAfter = {2} : ",iIndex, ev_node_current->getTimestamp(),bTimeAfterNode); 
-//strOut = System::String::Concat(strOut,strAppend);
-//if(ev_node_next!=nullptr)
-//	strAppend = System::String::Format("Next: {0}\n", ev_node_next->getTimestamp()   ); 
-//else
-//	strAppend = "Next: NULL\n";
-//strOut = System::String::Concat(strOut,strAppend);
-//System::Diagnostics::Trace::WriteLine(strOut);
-//
-//
-//
-//
-//		// loop until an event node that is after the time or next pointer is null (no next event)
-//		while( (ev_node_next !=nullptr) && bTimeAfterNode )
-//		{
-//			ev_node_current = ev_node_next;
-//			ev_node_next = ev_node_current->getNextEvent();
-//			bTimeAfterNode = _test_TimeAfterEvent(te_testTime, ev_node_current);
-//
-//strOut = "";
-//strAppend = "";
-//iIndex++;
-//strAppend = System::String::Format("Event {0}: Time = {1}, TimeAfter = {2} : ",iIndex, ev_node_current->getTimestamp(),bTimeAfterNode); 
-//strOut = System::String::Concat(strOut,strAppend);
-//if(ev_node_next!=nullptr)
-//	strAppend = System::String::Format("Next: {0}\n", ev_node_next->getTimestamp()   ); 
-//else
-//	strAppend = "Next: NULL\n";
-//strOut = System::String::Concat(strOut,strAppend);
-//System::Diagnostics::Trace::WriteLine(strOut);
-//
-//		}
-//
-//		// check why stopped
-//		if(ev_node_next ==nullptr)
-//		{
-//			// past last event
-//			ev_test_current_event = ev_node_current;
-//			ev_test_next_event = nullptr;
-//		}else
-//		{	// time is not after current node
-//			ev_test_next_event = ev_node_current; // ended while loop on node after tim
-//			ev_test_current_event = ev_node_current->getPreviousEvent(); // so current is the one before
-//		}
 
 		return true;
 	}
@@ -1142,7 +1082,96 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 #pragma endregion
 
 
+#pragma region event changes in player
+	// ----- change events ------
 
+	// -------- this will return for ALL player position types
+	// -------- slow?
+	//	searches each time, does not depend on time change, relative position
+	MouseLLEvent^ MouseLL::playEvent_All(double tm_new_player)
+	{
+
+//if(tm_new_player >= te_nextTime)
+//{
+//	bool bFunk;
+//	bFunk = true;
+//}
+
+		MouseLLEvent^ new_me;
+		MouseLLEvent^ new_next_me;		// don't care about this so much
+
+		if(!_search_NoPreviousNode(tm_new_player, new_me, new_next_me))
+		{
+			// something went wrong with the search
+			System::Windows::Forms::MessageBox::Show(System::String::Format("Error in finding event node at time {0} (playEvent_All)", tm_new_player));
+			return nullptr;
+		}
+
+		if(new_me == ev_currentEvent)
+		{
+			// no change
+			return nullptr;
+		}
+
+		// --- new event
+
+		// update event being sent
+		_update_playEvent_All(new_me, new_next_me, tm_new_player);
+
+		// return new event - may be nullptr if before events
+		return new_me;
+
+	}
+
+	// send new event based on normal playing and timer, will not send nullptr if not past next event
+	MouseLLEvent^ MouseLL::playEvent_Timer(double tm_new_player)
+	{
+		// -------- this will only test whether new time is passed new event
+		return nullptr;
+	}
+
+	//// event updates
+	//double te_currentTime;  // time at or past this, not to next yet
+	//double te_nextTime;     // next event time
+	//double te_prevTime;		// previous event time, after moving (not from playing forward)
+
+	//double pl_currentTime; // current player time
+	//double pl_prevTime;    // previous player time
+
+	//MouseLLEvent^ ev_prevEvent;		// previous event
+	//MouseLLEvent^ ev_nextEvent;		// next event
+	//MouseLLEvent^ ev_currentEvent;	// last / current event
+
+	// THIS MAY NOT MATTER
+	// update tracking state for playing event change
+	bool MouseLL::_update_playEvent_All(MouseLLEvent^ event_sent, MouseLLEvent^ event_sent_next, double tm_new_player)
+	{
+		// change events
+		ev_prevEvent = ev_currentEvent;
+		ev_currentEvent = event_sent;
+		ev_nextEvent = event_sent_next;
+
+		// change player time
+		pl_prevTime = pl_currentTime;
+		pl_currentTime = tm_new_player;
+
+		// change event times
+		te_prevTime = te_currentTime;	// update previous time
+		
+		if(event_sent != nullptr)		// update current time if not nullptr
+			te_currentTime = event_sent->getTimestamp();
+		else
+			te_currentTime = -1.0;
+
+		if(event_sent_next!= nullptr)  // update current next time if not nullptr
+			te_nextTime = event_sent_next->getTimestamp();
+		else
+			te_nextTime = -1.0;
+
+		return true;
+	}
+
+#pragma endregion
 
 
 #pragma region setup tracking variable functions
@@ -1160,21 +1189,25 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		if(Count == 1)
 		{
 			// ---- only one event
-			// set current event to first event
-			ev_currentEvent = firstEvent;
-			
 			// check if current player time is before ot after
-			if(_test_TimeAfterEvent(pl_currentTime, ev_currentEvent))
+			if(_test_TimeAfterEvent(pl_currentTime, firstEvent))
 			{
+				// after, so set current event, reset next
+				ev_currentEvent = firstEvent;
+				ev_nextEvent = nullptr;
 				// player time is after only event
 				te_currentTime = ev_currentEvent->getTimestamp();
-				// no next, so not setting ev_nextEvent, te_nextTime;
+				// no next, so not setting ev_nextEvent
+				te_nextTime = -1.0;
 			}else
 			{
 				// player time is before only event
 				te_nextTime = ev_currentEvent->getTimestamp(); // next event time is firstEvent time
-				// set next event to firstEvent
-				ev_nextEvent = ev_currentEvent;
+				// set next event to firstEvent, reset current
+				ev_nextEvent = firstEvent;
+				ev_currentEvent = nullptr;
+				// reset current
+				te_currentTime = -1.0;
 			}
 		}else
 		{
@@ -1191,15 +1224,17 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 				// check if time is before firstEvent
 				if(ev_currentEvent == nullptr)
 				{
-					// do not set current time
+					// set next time, reset current time
 					te_nextTime = ev_nextEvent->getTimestamp();
+					te_currentTime = -1.0;
 				}else
 				{
 					// check if current is last
 					if(ev_nextEvent == nullptr)
 					{
-						// next time only if not past last, do not set next time
+						// next time only if not past last, reset next time
 						te_currentTime = ev_currentEvent->getTimestamp();
+						te_nextTime = -1.0;
 					}else
 					{
 						// after first, before last
@@ -1290,18 +1325,6 @@ System::Void MouseLL::DEBUG_TRACKING(void)
 		strAppend = System::String::Format("ev_currentEvent = NULL\n");
 		strOut = System::String::Concat(strOut, strAppend);
 	}
-
-	//if(ev_nextEvent != nullptr)
-	//	strAppend = System::String::Format("ev_nextEvent = {0}: =firstEvent({1}), =lastEvent({2})\n", ev_nextEvent, ev_nextEvent==firstEvent, ev_nextEvent==lastEvent);
-	//else
-	//	strAppend = System::String::Format("ev_nextEvent = NULL\n");
-	//strOut = System::String::Concat(strOut, strAppend);
-
-	//if(ev_prevEvent != nullptr)
-	//	strAppend = System::String::Format("ev_prevEvent = {0}: =firstEvent({1}), =lastEvent({2})\n", ev_prevEvent, ev_prevEvent==firstEvent, ev_prevEvent==lastEvent);
-	//else
-	//	strAppend = System::String::Format("ev_prevEvent = NULL\n");
-	//strOut = System::String::Concat(strOut, strAppend);
 
 	System::Diagnostics::Trace::WriteLine(strOut);
 

@@ -108,28 +108,31 @@ namespace Squeak
 	// pressed an indicator button
 	System::Void Form1::DirectionButtonPressed(System::Windows::Forms::Button^ btnPressed)
 	{
-		// not currently in button move mode
-		if(btnSelected == nullptr)
+		if(!(cb_lockButtons->Checked)) // make sure buttons are not locked
 		{
-			btnSelected = btnPressed;
-			// button has been selected
-			if(WMP_IsPlaying())
-			{ 			
-				// playing, so stop
-				Pause_Movie();
-			}
-			//TogglePlayState();
-			//tbStateChange->Text = btnSelected->Text;
+			// not currently in button move mode
+			if(btnSelected == nullptr)
+			{
+				btnSelected = btnPressed;
+				// button has been selected
+				if(WMP_IsPlaying())
+				{ 			
+					// playing, so stop
+					Pause_Movie();
+				}
+				//TogglePlayState();
+				//tbStateChange->Text = btnSelected->Text;
 
-			// change background color
-			btnPressed->BackColor = colorButtonMoving;
-		}else
-		{
-			if(btnPressed == btnSelected) // check if same button was pressed
-			{	
-				// get out of button move mode
-				btnSelected = nullptr;
-				btnPressed->BackColor = colorButtonNormal;
+				// change background color
+				btnPressed->BackColor = colorButtonMoving;
+			}else
+			{
+				if(btnPressed == btnSelected) // check if same button was pressed
+				{	
+					// get out of button move mode
+					btnSelected = nullptr;
+					btnPressed->BackColor = colorButtonNormal;
+				}
 			}
 		}
 	}
@@ -617,9 +620,19 @@ namespace Squeak
 			tbStateChange->Text = MovieTimeToString(dWmpPosition);
 
 			// --- update events
-
+			if(!bRecording)
+			{
+				if(mouseLL != nullptr)
+				{
+					MouseLLEvent^ me_sent = mouseLL->playEvent_All(dWmpPosition);
+					if(me_sent != nullptr)
+					{
+						// new event
+						_StateSetButtonState(me_sent->getArm(), me_sent->getFed());
+					}
+				}
+			}
 		}
-
 
 	}
 
@@ -776,9 +789,21 @@ namespace Squeak {
 		{
 			// only enable if not playing and/or recording
 			if(!bRecording && !WMP_IsPlaying())
+			{
 				dataGridViewEvents->Enabled = true;
+				dataGridViewEvents->DefaultCellStyle->BackColor = colorNormalDataGrid;
+
+				dataGridViewEvents->DefaultCellStyle->SelectionForeColor = colorNormalDataGridSelectionForeColor;
+				dataGridViewEvents->DefaultCellStyle->SelectionBackColor = colorNormalDataGridSelectionBackColor;
+			}
 		}else
+		{
 			dataGridViewEvents->Enabled = false; // always disable
+			dataGridViewEvents->DefaultCellStyle->BackColor = colorDisabledDataGrid;
+	
+			dataGridViewEvents->DefaultCellStyle->SelectionForeColor = colorDisabledDataGridSelectionFore;
+			dataGridViewEvents->DefaultCellStyle->SelectionBackColor = colorDisabledDataGridSelectionBack;
+		}
 	}
 #pragma endregion
 
