@@ -21,24 +21,41 @@ MouseLLEvent::MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLE
 
 }
 
+// populate grid row
+void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
+{
+	// convert time to movie stamp
+	double dMinutes = floor(dTimestamp / 60);
+	double dSeconds = fmod(dTimestamp, 60);
+	// add data
+	rowDataArray[0] = System::String::Format("{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
+	rowDataArray[1] = System::String::Format("{0}",iArm);
+	rowDataArray[2] = System::String::Format("{0}",bFed);
+}
+
+// ---------------------------------------------------- MouseLL -----------------------------------
 #pragma region MouseLL constructors
 MouseLL::MouseLL(void)
 {
 	new_EventID = 0;
 
 	// initialize event updating
-	e_lastTime = -1.0;
-	e_nextTime = -1.0;
-	pl_currentTime = -1.0; // init current player time
-	pl_prevTime = -1.0;    // init previous player time
-	ev_prevEvent = nullptr; // previous event
-	ev_nextEvent = nullptr; // next event
+	te_currentTime	= -1.0;	// time at or past this, not to next yet
+	te_nextTime		= -1.0; // time of next event
+	te_prevTime		= -1.0; // previous event time, after moving
 
+	pl_currentTime	= -1.0; // init current player time
+	pl_prevTime		= -1.0; // init previous player time
 
+	ev_prevEvent	= nullptr; // previous event
+	ev_nextEvent	= nullptr; // next event
+	ev_currentEvent = nullptr; // current event
+
+	te_currentTime;      // time at or past this, not to next yet
 }
 
 
-MouseLL::MouseLL(System::String^ currentMovieURL, double currentMovieSecs)
+MouseLL::MouseLL(System::String^ currentMovieURL, double currentMovieSecs, double currentMoviePosition)
 {
 	// movie name
 	movieURL = currentMovieURL;
@@ -46,17 +63,24 @@ MouseLL::MouseLL(System::String^ currentMovieURL, double currentMovieSecs)
 	dMaxMovieSecs = currentMovieSecs;
 	// setup event ID
 	new_EventID = 0;
+	
 	// initialize event updating
-	e_lastTime = -1.0;
-	e_nextTime = -1.0;
-	pl_currentTime = -1.0; // init current player time
-	pl_prevTime = -1.0;    // init previous player time
-	ev_prevEvent = nullptr; // previous event
-	ev_nextEvent = nullptr; // next event
+	pl_currentTime	= currentMoviePosition;  // init current player time
+	pl_prevTime		= -1.0;					 // init previous player time
+
+	te_currentTime	= -1.0;		// last/current event time
+	te_nextTime		= -1.0;		// next event time
+	te_prevTime		= -1.0;		// previous event time
+
+	ev_prevEvent	= nullptr;	// previous event
+	ev_nextEvent	= nullptr;	// next event
+	ev_currentEvent	= nullptr;	// current event
+
+	te_currentTime;      // time at or past this, not to next yet
 
 }
 
-MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs)
+MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, double currentMoviePosition)
 {
 	// add name
 	seqName = newSeqName;
@@ -75,13 +99,20 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	dMaxMovieSecs = currentMovieSecs;
 	// setup event ID
 	new_EventID = 0;
+
 	// initialize event updating
-	e_lastTime = -1.0;
-	e_nextTime = -1.0;
-	pl_currentTime = -1.0; // init current player time
-	pl_prevTime = -1.0;    // init previous player time
-	ev_prevEvent = nullptr; // previous event
-	ev_nextEvent = nullptr; // next event
+	pl_currentTime = currentMoviePosition;  // init current player time
+	pl_prevTime = -1.0;						// init previous player time
+
+	te_currentTime	= -1.0;						// last event time
+	te_nextTime		= -1.0;						// next event time
+	te_prevTime		= -1.0;						// previous event time
+
+	ev_prevEvent	= nullptr;					// previous event
+	ev_nextEvent	= nullptr;					// next event
+	ev_currentEvent = nullptr;				// current event
+
+	
 }
 
 MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, double dNewTime, bool bNewFeed, int iNewArm)
@@ -105,28 +136,20 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	new_EventID = 0;
 
 	// initialize event updating
-	e_lastTime = -1.0;
-	e_nextTime = -1.0;
-	pl_currentTime = -1.0; // init current player time
-	pl_prevTime = -1.0;    // init previous player time
-	ev_prevEvent = nullptr; // previous event
-	ev_nextEvent = nullptr; // next event
+	pl_currentTime	= dNewTime;  // init current player time
+	pl_prevTime		= -1.0;		// init previous player time
 
+	te_currentTime	= -1.0;		// last/current event time
+	te_nextTime		= -1.0;		// next event time
+	te_prevTime		= -1.0;						// previous event time
+
+	ev_prevEvent	= nullptr;					// previous event
+	ev_nextEvent	= nullptr;					// next event
+	ev_currentEvent = nullptr;				// current event
 
 }
 #pragma endregion
 
-// populate grid row
-void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
-{
-	// convert time to movie stamp
-	double dMinutes = floor(dTimestamp / 60);
-	double dSeconds = fmod(dTimestamp, 60);
-	// add data
-	rowDataArray[0] = System::String::Format("{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
-	rowDataArray[1] = System::String::Format("{0}",iArm);
-	rowDataArray[2] = System::String::Format("{0}",bFed);
-}
 
 
 // buttons
@@ -784,6 +807,107 @@ void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
 		return currentEvent;
 
 	}
+
+	// searches for the node with a time the same or after the event, prior to next event
+	bool MouseLL::_search_NoPreviousNode(double te_testTime, MouseLLEvent^% ev_test_current_event, MouseLLEvent^% ev_test_next_event)
+	{
+		//// --- test for null pointers
+		//if(ev_test_current_event == nullptr)
+		//{
+		//	System::Windows::Forms::MessageBox::Show("_search_NoPreviousNode passed ev_test_current_event==nullptr");
+		//	return false;
+		//}
+		//if(ev_test_next_event == nullptr)
+		//{
+		//	System::Windows::Forms::MessageBox::Show("_search_NoPreviousNode passed ev_test_next_event==nullptr");
+		//	return false;
+		//}
+
+		// --- check for time before first event
+		if(!_test_TimeAfterEvent(te_testTime, firstEvent))
+		{
+			// time is before first event
+			ev_test_current_event = nullptr; ev_test_next_event = firstEvent;
+			return true;
+		}
+
+		// --- check for time after last event
+		if(_test_TimeAfterEvent(te_testTime, lastEvent))
+		{
+			// time is after last event
+			ev_test_current_event = lastEvent; ev_test_next_event = nullptr;
+			return true;
+		}
+
+		// --- start search
+
+		MouseLLEvent^ ev_node_current = firstEvent;
+		MouseLLEvent^ ev_node_next = ev_node_current->getNextEvent();
+		bool bTimeAfterNext = _test_TimeAfterEvent(te_testTime, ev_node_next);
+
+		// loop until time is less than next event time - NOTE THIS ONLY WORKS SINCE WE CAUGHT LAST EVENT
+		while(bTimeAfterNext)
+		{
+			ev_node_current = ev_node_next;
+			ev_node_next = ev_node_current->getNextEvent();
+			bTimeAfterNext = _test_TimeAfterEvent(te_testTime, ev_node_next);			
+		}
+		ev_test_current_event = ev_node_current;
+		ev_test_next_event = ev_node_next; // this is the node the time is not equal or greater than
+
+//System::Diagnostics::Trace::WriteLine(System::String::Format("TIME AFTER = {0}", te_testTime));
+//System::String^ strOut("");
+//System::String^ strAppend("");
+//int iIndex = 1;
+//
+//strAppend = System::String::Format("Event {0}: Time = {1}, TimeAfter = {2} : ",iIndex, ev_node_current->getTimestamp(),bTimeAfterNode); 
+//strOut = System::String::Concat(strOut,strAppend);
+//if(ev_node_next!=nullptr)
+//	strAppend = System::String::Format("Next: {0}\n", ev_node_next->getTimestamp()   ); 
+//else
+//	strAppend = "Next: NULL\n";
+//strOut = System::String::Concat(strOut,strAppend);
+//System::Diagnostics::Trace::WriteLine(strOut);
+//
+//
+//
+//
+//		// loop until an event node that is after the time or next pointer is null (no next event)
+//		while( (ev_node_next !=nullptr) && bTimeAfterNode )
+//		{
+//			ev_node_current = ev_node_next;
+//			ev_node_next = ev_node_current->getNextEvent();
+//			bTimeAfterNode = _test_TimeAfterEvent(te_testTime, ev_node_current);
+//
+//strOut = "";
+//strAppend = "";
+//iIndex++;
+//strAppend = System::String::Format("Event {0}: Time = {1}, TimeAfter = {2} : ",iIndex, ev_node_current->getTimestamp(),bTimeAfterNode); 
+//strOut = System::String::Concat(strOut,strAppend);
+//if(ev_node_next!=nullptr)
+//	strAppend = System::String::Format("Next: {0}\n", ev_node_next->getTimestamp()   ); 
+//else
+//	strAppend = "Next: NULL\n";
+//strOut = System::String::Concat(strOut,strAppend);
+//System::Diagnostics::Trace::WriteLine(strOut);
+//
+//		}
+//
+//		// check why stopped
+//		if(ev_node_next ==nullptr)
+//		{
+//			// past last event
+//			ev_test_current_event = ev_node_current;
+//			ev_test_next_event = nullptr;
+//		}else
+//		{	// time is not after current node
+//			ev_test_next_event = ev_node_current; // ended while loop on node after tim
+//			ev_test_current_event = ev_node_current->getPreviousEvent(); // so current is the one before
+//		}
+
+		return true;
+	}
+
 #pragma endregion
 
 #pragma region test events
@@ -1019,3 +1143,166 @@ void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
 
 
 
+
+
+#pragma region setup tracking variable functions
+	// set up after load
+	bool MouseLL::setup_loadSequence(void)
+	{
+		// make sure we have events
+		if(firstEvent == nullptr)
+		{
+			System::Windows::Forms::MessageBox::Show("setup_loadSequence: no events (firstEvent==nullptr)");
+			return false;
+		}
+
+		// ------------------------------ check if only one event
+		if(Count == 1)
+		{
+			// ---- only one event
+			// set current event to first event
+			ev_currentEvent = firstEvent;
+			
+			// check if current player time is before ot after
+			if(_test_TimeAfterEvent(pl_currentTime, ev_currentEvent))
+			{
+				// player time is after only event
+				te_currentTime = ev_currentEvent->getTimestamp();
+				// no next, so not setting ev_nextEvent, te_nextTime;
+			}else
+			{
+				// player time is before only event
+				te_nextTime = ev_currentEvent->getTimestamp(); // next event time is firstEvent time
+				// set next event to firstEvent
+				ev_nextEvent = ev_currentEvent;
+			}
+		}else
+		{
+			// ---- more than one event
+			// search by time, no node to guide	
+			bool bSearchOK = false;
+			if( (bSearchOK = _search_NoPreviousNode(pl_currentTime, ev_currentEvent, ev_nextEvent)) )
+			{
+				//possible:
+				//	time before firstEvent
+				//  time after lastEvent
+				// time between nodes
+
+				// check if time is before firstEvent
+				if(ev_currentEvent == nullptr)
+				{
+					// do not set current time
+					te_nextTime = ev_nextEvent->getTimestamp();
+				}else
+				{
+					// check if current is last
+					if(ev_nextEvent == nullptr)
+					{
+						// next time only if not past last, do not set next time
+						te_currentTime = ev_currentEvent->getTimestamp();
+					}else
+					{
+						// after first, before last
+						te_currentTime = ev_currentEvent->getTimestamp();
+						te_nextTime = ev_nextEvent->getTimestamp();
+					}
+				}
+			}else
+				return false; // error searching
+			
+		}
+		
+		DEBUG_TRACKING();
+		return true;
+	}
+#pragma endregion
+
+System::Void MouseLL::DEBUG_TRACKING(void)
+{
+	//// event updates
+	//double te_currentTime;  // time at or past this, not to next yet
+	//double te_nextTime;     // next event time
+	//double te_prevTime;		// previous event time, after moving (not from playing forward)
+
+	//double pl_currentTime; // current player time
+	//double pl_prevTime;    // previous player time
+
+	//MouseLLEvent^ ev_prevEvent;		// previous event
+	//MouseLLEvent^ ev_nextEvent;		// next event
+	//MouseLLEvent^ ev_currentEvent;	// last / current event
+
+	System::String^ strOut;
+	System::String^ strAppend;
+
+	strOut = "\n";
+	// player times
+	strAppend = System::String::Format("pl_currentTime = {0}\n", pl_currentTime);
+	strOut = System::String::Concat(strOut, strAppend);
+	strAppend = System::String::Format("pl_prevTime = {0}\n\n", pl_prevTime);
+	strOut = System::String::Concat(strOut, strAppend);
+	
+	// tracking times
+	strAppend = System::String::Format("te_currentTime = {0}\n", te_currentTime);
+	strOut = System::String::Concat(strOut, strAppend);
+	strAppend = System::String::Format("te_nextTime = {0}\n", te_nextTime);
+	strOut = System::String::Concat(strOut, strAppend);
+	strAppend = System::String::Format("te_prevTime = {0}\n\n", te_prevTime);
+	strOut = System::String::Concat(strOut, strAppend);
+
+	// --- events
+	// ev_currentEvent
+	if(ev_currentEvent != nullptr)
+	{
+		strAppend = System::String::Format("ev_currentEvent: {0} :", ev_currentEvent);
+		strOut = System::String::Concat(strOut, strAppend);
+		strAppend = System::String::Format("==firstEvent = {0}, ==lastEvent = {1})\n", ev_currentEvent==firstEvent, ev_currentEvent==lastEvent);
+		strOut = System::String::Concat(strOut, strAppend);
+	}
+	else
+	{
+		strAppend = System::String::Format("ev_currentEvent = NULL\n");
+		strOut = System::String::Concat(strOut, strAppend);
+	}
+
+	// ev_nextEvent
+	if(ev_nextEvent != nullptr)
+	{
+		strAppend = System::String::Format("ev_nextEvent: {0} :", ev_nextEvent);
+		strOut = System::String::Concat(strOut, strAppend);
+		strAppend = System::String::Format("==firstEvent = {0}, ==lastEvent = {1})\n", ev_nextEvent==firstEvent, ev_nextEvent==lastEvent);
+		strOut = System::String::Concat(strOut, strAppend);
+	}
+	else
+	{
+		strAppend = System::String::Format("ev_nextEvent = NULL\n");
+		strOut = System::String::Concat(strOut, strAppend);
+	}
+	// ev_prevEvent
+	if(ev_prevEvent != nullptr)
+	{
+		strAppend = System::String::Format("ev_prevEvent: {0} :", ev_prevEvent);
+		strOut = System::String::Concat(strOut, strAppend);
+		strAppend = System::String::Format("==firstEvent = {0}, ==lastEvent = {1})\n", ev_prevEvent==firstEvent, ev_prevEvent==lastEvent);
+		strOut = System::String::Concat(strOut, strAppend);
+	}
+	else
+	{
+		strAppend = System::String::Format("ev_currentEvent = NULL\n");
+		strOut = System::String::Concat(strOut, strAppend);
+	}
+
+	//if(ev_nextEvent != nullptr)
+	//	strAppend = System::String::Format("ev_nextEvent = {0}: =firstEvent({1}), =lastEvent({2})\n", ev_nextEvent, ev_nextEvent==firstEvent, ev_nextEvent==lastEvent);
+	//else
+	//	strAppend = System::String::Format("ev_nextEvent = NULL\n");
+	//strOut = System::String::Concat(strOut, strAppend);
+
+	//if(ev_prevEvent != nullptr)
+	//	strAppend = System::String::Format("ev_prevEvent = {0}: =firstEvent({1}), =lastEvent({2})\n", ev_prevEvent, ev_prevEvent==firstEvent, ev_prevEvent==lastEvent);
+	//else
+	//	strAppend = System::String::Format("ev_prevEvent = NULL\n");
+	//strOut = System::String::Concat(strOut, strAppend);
+
+	System::Diagnostics::Trace::WriteLine(strOut);
+
+}

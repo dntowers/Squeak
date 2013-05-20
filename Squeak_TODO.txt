@@ -9,7 +9,7 @@ Enable Save sequence button
 	Start with record
 	X Load
 X New sequence default to movie name + "_seq"
-No new sequence without movie
+X No new sequence without movie
 No load without movie
 
 Sequence / Events:
@@ -21,3 +21,14 @@ X Load:
 	X check for existing
 	X check movie name match
 X Check for existing sequence when closing program
+
+setup tracking
+	X Load
+	X new from record
+	X new from button
+update tracking
+	play by events
+	same function for new time?
+		slider
+		step buttons
+		grid

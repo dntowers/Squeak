@@ -238,7 +238,7 @@ namespace Squeak
 			{
 				double mov_firstTime = -1;
 				double mov_lastTime = -1;
-				if(mouseLL->getFirstLastTimes(&dFirstTime, &dLastTime))
+				if(mouseLL->getFirstLastTimes(&mov_firstTime, &mov_lastTime))
 				{
 					// update text boxes in MM:SS:ss format
 					eventFirstTextBox->Text = MovieTimeToString(mov_firstTime);
@@ -318,7 +318,7 @@ namespace Squeak
 					bAddedOK = true;
 					try
 					{
-						mouseLL = gcnew MouseLL(strNewName, axWindowsMediaPlayer1->URL, WMP_Duration());
+						mouseLL = gcnew MouseLL(strNewName, axWindowsMediaPlayer1->URL, WMP_Duration(), WMP_GetPosition());
 					}
 					catch (OutOfMemoryException ^e)
 					{
@@ -395,7 +395,7 @@ namespace Squeak
 				}
 				try
 				{
-					mouseLL = gcnew MouseLL(axWindowsMediaPlayer1->URL, WMP_Duration());
+					mouseLL = gcnew MouseLL(axWindowsMediaPlayer1->URL, WMP_Duration(), WMP_GetPosition());
 				}
 				catch (OutOfMemoryException ^e)
 				{
@@ -420,6 +420,8 @@ namespace Squeak
 				{
 					if(mouseLL->Load_Sequence(strSeqLoadFile))
 					{
+						// set up tracking
+						mouseLL->setup_loadSequence();
 						// update grid data
 						UpdateGridData();
 						// update first, last events
@@ -428,7 +430,6 @@ namespace Squeak
 						btnSequenceSave->Enabled = true;
 						// update series name box
 						textBoxSeqName->Text = mouseLL->getSequenceName();
-
 						#ifdef STATE_CHANGE
 							// add load sequence state change
 							MouseLLEvent^ firstEvent = mouseLL->getFirstEvent();
@@ -602,6 +603,7 @@ namespace Squeak
 	// called when timer ticks
 	System::Void Form1::TimerTick(System::EventArgs^  e)
 	{
+		// ------ check position
 		double dNewWMPPosition; // current position
 
 		// get current position
@@ -609,18 +611,16 @@ namespace Squeak
 		// check if different than last position
 		if(dNewWMPPosition != dWmpPosition)
 		{
-			// change in position of WMP
+			// -----------------------------------change in position of WMP
+			// update time string
 			dWmpPosition = dNewWMPPosition;
-
 			tbStateChange->Text = MovieTimeToString(dWmpPosition);
 
-			// code for updated position
-			//TimeSpan movieTime = TimeSpan::FromSeconds(dWmpPosition);
+			// --- update events
 
-			//tbStateChange->Text = movieTime.ToString("c");
-
-			//tbStateChange->Text = String::Format("{0}",dWmpPosition);
 		}
+
+
 	}
 
 }

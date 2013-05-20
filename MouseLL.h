@@ -78,17 +78,9 @@ public enum class ML_ERR {
 ref class MouseLL : public System::Object
 {
 // constructors
+
 public:
 	
-	//MouseLL(void);
-	//// called new sequence - loading
-	//MouseLL(System::String^ currentMovieURL, double currentMovieSecs); // only for load
-	//// called new sequence - Not recording
-	//MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs);
-	//// called new sequence - Recording
-	//MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, 
-	//	    double dNewTime, bool bNewFeed, int iNewArm);
-
 	MouseLL(void);
 	// called new sequence - loading
 	MouseLL(System::String^ currentMovieURL, double currentMovieSecs, double currentMoviePosition); // only for load
@@ -100,6 +92,19 @@ public:
 
 // properties
 private:
+
+	// event updates
+	double te_currentTime;  // time at or past this, not to next yet
+	double te_nextTime;     // next event time
+	double te_prevTime;		// previous event time, after moving (not from playing forward)
+
+	double pl_currentTime; // current player time
+	double pl_prevTime;    // previous player time
+
+	MouseLLEvent^ ev_prevEvent;		// previous event
+	MouseLLEvent^ ev_nextEvent;		// next event
+	MouseLLEvent^ ev_currentEvent;	// last / current event
+
 	// pointers to first and last event
 	MouseLLEvent^ firstEvent;
 	MouseLLEvent^ lastEvent;
@@ -121,13 +126,6 @@ private:
 	// max movie time
 	double dMaxMovieSecs;
 
-	// event updates
-	double e_lastTime;     // last event time
-	double e_nextTime;     // next event time
-	double pl_currentTime; // current player time
-	double pl_prevTime;    // previous player time
-	MouseLLEvent^ ev_prevEvent; // previous event
-	MouseLLEvent^ ev_nextEvent; // previous event
 
 	// for tracking
 	int new_EventID;
@@ -209,7 +207,29 @@ private:
 		int PopulateDataGrid(System::Windows::Forms::DataGridView^ dataGridEvents); 
 
 // ----- Find
-	public:
+public:
 		// find node by index
 		MouseLLEvent^ FindNodeByIndex(int iZeroIndex);
+private:
+	// searches for the node with a time the same or after the event, prior to next event
+	bool _search_NoPreviousNode(double te_testTime, MouseLLEvent^% ev_test_current_event, MouseLLEvent^% ev_test_next_event);
+
+// --- testing
+private:
+	// returns true if time is before event, false if after or at the same time
+	bool _test_TimeBeforeEvent(double te_testTime, MouseLLEvent^ ev_testEvent)
+		{return (te_testTime < ev_testEvent->getTimestamp());}
+	
+	// returns true if time is after or at the same time as event
+	bool _test_TimeAfterEvent(double te_testTime, MouseLLEvent^ ev_testEvent)
+		{return (te_testTime >= ev_testEvent->getTimestamp());}
+
+// tracking setup
+public:
+	// set up event tracking variables after a load sequence event
+	bool setup_loadSequence(void);
+
+private:
+	// debugging for tracking
+	System::Void DEBUG_TRACKING(void);
 };
