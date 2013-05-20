@@ -1,12 +1,8 @@
 #pragma once
 
-//// array for buttons down
-//public ref struct buttonArray
-//{
-//	System::Windows::Forms::Button^  btn;
-//	bool bOn;
-//	System::Windows::Forms::Keys btnKeyCode;
-//};
+#define AUTOSEQ "C:\\Users\\David\\Desktop\\Test.csv"
+#define AUTOMOV "C:\\Users\\David\\Desktop\\CH1 1.wmv"
+
 
 namespace Squeak {
 
@@ -53,9 +49,6 @@ namespace Squeak {
 			colorButtonOn = System::Drawing::SystemColors::ButtonHighlight;
 			colorButtonFeeding = System::Drawing::Color::Yellow;
 
-			// TEMP - KEEP FROM NEEDING TO LOAD
-			axWindowsMediaPlayer1->URL = "C:\\Users\\David\\Desktop\\CH1 1.wmv";
-			textBoxVideoFile->Text = axWindowsMediaPlayer1->URL;
 
 			// set dialog box properties
 			openFileDialogVideo->Filter = "WMV files (*.wmv)|*.wmv|All files (*.*)|*.*";
@@ -72,9 +65,6 @@ namespace Squeak {
 			mouseLL = nullptr;
 			// state change stack
 			stateLL = nullptr;
-			
-
-
 
 #pragma region button array
 			// -- active state array
@@ -113,6 +103,16 @@ namespace Squeak {
 			btnArray[9]->btnKeyCode = Keys::NumPad9;
 			// add keys
 
+#pragma endregion
+#pragma region DEVELOP
+			// automatic movie
+			// TEMP - KEEP FROM NEEDING TO LOAD
+			// axWindowsMediaPlayer1->URL = "C:\\Users\\David\\Desktop\\CH1 1.wmv";
+			// textBoxVideoFile->Text = axWindowsMediaPlayer1->URL;
+			#ifdef AUTOMOV
+				axWindowsMediaPlayer1->URL = AUTOMOV;
+				textBoxVideoFile->Text = axWindowsMediaPlayer1->URL;
+			#endif
 #pragma endregion
 
 		}
@@ -794,6 +794,75 @@ private: System::Windows::Forms::Button^  btnStepBack;
 			{axWindowsMediaPlayer1->Ctlcontrols->currentPosition = dPositionSecs;}
 #pragma endregion
 
+#pragma region WMP state
+	private:
+			// set flag for whether WMP is playing
+			void WMP_CheckPlaying() {
+				bWMPPlaying = (axWindowsMediaPlayer1->playState == WMPLib::WMPPlayState::wmppsPlaying);
+				SetPlayingControls();
+			}
+			// check if playing
+			bool WMP_IsPlaying() {
+				return (axWindowsMediaPlayer1->playState == WMPLib::WMPPlayState::wmppsPlaying);
+			}
+			// get rate
+			double WMP_GetRate() {
+				return axWindowsMediaPlayer1->settings->rate;
+				// dWMP_Rate = axWindowsMediaPlayer1->settings->rate;
+				//dWMP_Rate = axWindowsMediaPlayer1->settings->rate();
+			}
+			// get rate
+			double WMP_GetPosition() {
+				return axWindowsMediaPlayer1->Ctlcontrols->currentPosition;
+				// dWMP_Rate = axWindowsMediaPlayer1->settings->rate;
+				//dWMP_Rate = axWindowsMediaPlayer1->settings->rate();
+			}
+			// get frame rate
+			System::String^ WMP_FrameRate() {				
+				return axWindowsMediaPlayer1->currentMedia->getItemInfo("FrameRate");
+				// dWMP_Rate = axWindowsMediaPlayer1->settings->rate;
+				//dWMP_Rate = axWindowsMediaPlayer1->settings->rate();
+			}
+			// rate change in WMP
+			System::Void rateUpDown_ValueChanged(System::Object^  sender, System::EventArgs^  e){
+				dWMP_Rate = double(rateUpDown->Value);
+				axWindowsMediaPlayer1->settings->rate = dWMP_Rate;
+			}
+			// slider position changed
+			System::Void axWindowsMediaPlayer1_PositionChange(System::Object^  sender, AxWMPLib::_WMPOCXEvents_PositionChangeEvent^  e) {
+				if(!WMP_IsPlaying())
+				{
+					//WMPLib::IWMPControls2^ ctls2 = axWindowsMediaPlayer1->Ctlcontrols;
+					((WMPLib::IWMPControls2^)axWindowsMediaPlayer1->Ctlcontrols)->step(1);
+					//CAxWindow                   m_wndView;
+					///CComPtr<IWMPPlayer>         m_spWMPPlayer;
+					//IWMPControls2 Ctlcontrols2 = (IWMPControls2)axWindowsMediaPlayer1->Ctlcontrols;
+				}
+			}
+			// check if media player has video
+			bool WMP_HasVideo(void)
+				{ return (axWindowsMediaPlayer1->URL->Length != 0);}
+			// check max duration of media
+			double WMP_Duration(void)
+				{return axWindowsMediaPlayer1->currentMedia->duration;}
+				//{ double dDuration; ((WMPLib::IWMPMedia^)axWindowsMediaPlayer1->currentMedia)->get_duration(&dDuration); return dDuration;}
+				//  return axWindowsMediaPlayer1->currentMedia->get_Duration;}
+
+#pragma endregion
+
+#pragma region WMP events
+	private: 	
+		System::Void axWindowsMediaPlayer1_MouseDownEvent(System::Object^  sender, AxWMPLib::_WMPOCXEvents_MouseDownEvent^  e) {
+				if(btnSelected != nullptr)
+					WMP_Mouse_Pressed(e);
+			}
+
+		System::Void axWindowsMediaPlayer1_PlayStateChange(System::Object^  sender, AxWMPLib::_WMPOCXEvents_PlayStateChangeEvent^  e) {
+				 //WMP_CheckPlaying();
+				 SetPlayingControls();
+			 }
+#pragma endregion
+
 private:
 #pragma region Form Events: sequence buttons
 		// sequence load, new, save
@@ -810,12 +879,10 @@ private:
 			//		Sequence_Save();
 			//}
 		 }
-		System::Void btnSequenceLoad_Click(System::Object^  sender, System::EventArgs^  e) {
-			Sequence_Load();
-		 }
-		System::Void btnSequenceNew_Click(System::Object^  sender, System::EventArgs^  e) {
-			Sequence_New(false);
-		 }
+		// Sequence - Load
+		System::Void btnSequenceLoad_Click(System::Object^  sender, System::EventArgs^  e) {Sequence_Load("");}
+		// Sequence - New
+		System::Void btnSequenceNew_Click(System::Object^  sender, System::EventArgs^  e) {Sequence_New(false);}
 
 #pragma endregion
 #pragma region Form Events: button click
@@ -911,74 +978,6 @@ private:
 
 #pragma endregion
 
-#pragma region WMP state
-	private:
-			// set flag for whether WMP is playing
-			void WMP_CheckPlaying() {
-				bWMPPlaying = (axWindowsMediaPlayer1->playState == WMPLib::WMPPlayState::wmppsPlaying);
-				SetPlayingControls();
-			}
-			// check if playing
-			bool WMP_IsPlaying() {
-				return (axWindowsMediaPlayer1->playState == WMPLib::WMPPlayState::wmppsPlaying);
-			}
-			// get rate
-			double WMP_GetRate() {
-				return axWindowsMediaPlayer1->settings->rate;
-				// dWMP_Rate = axWindowsMediaPlayer1->settings->rate;
-				//dWMP_Rate = axWindowsMediaPlayer1->settings->rate();
-			}
-			// get rate
-			double WMP_GetPosition() {
-				return axWindowsMediaPlayer1->Ctlcontrols->currentPosition;
-				// dWMP_Rate = axWindowsMediaPlayer1->settings->rate;
-				//dWMP_Rate = axWindowsMediaPlayer1->settings->rate();
-			}
-			// get frame rate
-			System::String^ WMP_FrameRate() {				
-				return axWindowsMediaPlayer1->currentMedia->getItemInfo("FrameRate");
-				// dWMP_Rate = axWindowsMediaPlayer1->settings->rate;
-				//dWMP_Rate = axWindowsMediaPlayer1->settings->rate();
-			}
-			// rate change in WMP
-			System::Void rateUpDown_ValueChanged(System::Object^  sender, System::EventArgs^  e){
-				dWMP_Rate = double(rateUpDown->Value);
-				axWindowsMediaPlayer1->settings->rate = dWMP_Rate;
-			}
-			// slider position changed
-			System::Void axWindowsMediaPlayer1_PositionChange(System::Object^  sender, AxWMPLib::_WMPOCXEvents_PositionChangeEvent^  e) {
-				if(!WMP_IsPlaying())
-				{
-					//WMPLib::IWMPControls2^ ctls2 = axWindowsMediaPlayer1->Ctlcontrols;
-					((WMPLib::IWMPControls2^)axWindowsMediaPlayer1->Ctlcontrols)->step(1);
-					//CAxWindow                   m_wndView;
-					///CComPtr<IWMPPlayer>         m_spWMPPlayer;
-					//IWMPControls2 Ctlcontrols2 = (IWMPControls2)axWindowsMediaPlayer1->Ctlcontrols;
-				}
-			}
-			// check if media player has video
-			bool WMP_HasVideo(void)
-				{ return (axWindowsMediaPlayer1->URL->Length != 0);}
-			// check max duration of media
-			double WMP_Duration(void)
-				{return axWindowsMediaPlayer1->currentMedia->duration;}
-				//{ double dDuration; ((WMPLib::IWMPMedia^)axWindowsMediaPlayer1->currentMedia)->get_duration(&dDuration); return dDuration;}
-				//  return axWindowsMediaPlayer1->currentMedia->get_Duration;}
-
-#pragma endregion
-
-#pragma region WMP events
-	private: 	
-		System::Void axWindowsMediaPlayer1_MouseDownEvent(System::Object^  sender, AxWMPLib::_WMPOCXEvents_MouseDownEvent^  e) {
-				if(btnSelected != nullptr)
-					WMP_Mouse_Pressed(e);
-			}
-
-		System::Void axWindowsMediaPlayer1_PlayStateChange(System::Object^  sender, AxWMPLib::_WMPOCXEvents_PlayStateChangeEvent^  e) {
-				 //WMP_CheckPlaying();
-				 SetPlayingControls();
-			 }
-#pragma endregion
 
 #pragma region Input events
 	private: 
@@ -1052,7 +1051,7 @@ private:
 		bool Sequence_OK_New(bool* p_bCancel); 
 		bool Sequence_CheckOverwrite(bool* p_bCancel); // ask user to save, overwrite, or cancel
 		bool Sequence_New(bool bFromRecordButton);	// create new sequence
-		void Sequence_Load(void);	// load sequence
+		void Sequence_Load(System::String^ strSeqLoadFile);	// load sequence
 		void Sequence_Save(void);	// load sequence
 		// make default series name
 		System::String^ DefaultSeriesName(void);

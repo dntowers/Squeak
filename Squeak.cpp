@@ -1,5 +1,6 @@
 // Squeak.cpp : main project file.
 
+
 #include "stdafx.h"
 #include <math.h>
 #include "TimeState.h"
@@ -44,7 +45,8 @@ namespace Squeak
 		System::String^ strOuput;
 		// strPrompt = actual prompt, strCaption = displayed at top of box
 		FormTextInput^ inBox = gcnew FormTextInput;
-		
+
+
 		inBox->SetCaption(strCaption);
 		inBox->SetPrompt(strPrompt);
 		inBox->SetDefault(strDefault);
@@ -234,13 +236,13 @@ namespace Squeak
 		{
 			if(mouseLL->get_Count() > 0)
 			{
-				double dFirstTime = -1;
-				double dLastTime = -1;
+				double mov_firstTime = -1;
+				double mov_lastTime = -1;
 				if(mouseLL->getFirstLastTimes(&dFirstTime, &dLastTime))
 				{
 					// update text boxes in MM:SS:ss format
-					eventFirstTextBox->Text = MovieTimeToString(dFirstTime);
-					eventLastTextBox->Text = MovieTimeToString(dLastTime);
+					eventFirstTextBox->Text = MovieTimeToString(mov_firstTime);
+					eventLastTextBox->Text = MovieTimeToString(mov_lastTime);
 				}
 			}
 		}
@@ -267,8 +269,8 @@ namespace Squeak
 		{
 			// create a default name
 			System::String^ strDefaultName = DefaultSeriesName();
-			// get new sequence name
 			System::String^ strNewName = TextInputBox(L"Enter New Sequence Name", "Squeak", strDefaultName);
+
 			if(!(String::IsNullOrEmpty(strNewName)))
 			{
 
@@ -355,7 +357,7 @@ namespace Squeak
 	}
 
 	// load sequence
-	System::Void Form1::Sequence_Load(void)
+	System::Void Form1::Sequence_Load(System::String^ strSeqLoadFile)
 	{
 		bool bCancel = false;
 		// check if movie is "connected"
@@ -369,8 +371,18 @@ namespace Squeak
 		// check OK for new sequenc
 		if(Sequence_OK_New(&bCancel))
 		{
-			// path to load
-			System::String^ strSeqLoadFile = _LoadSeqDialog();
+			// DEVELOP - autload sequence name
+			#ifdef AUTOSEQ 
+				strSeqLoadFile = AUTOSEQ;
+			#endif
+
+			// path to load - NOTE: Included for autorun
+			if(String::IsNullOrEmpty(strSeqLoadFile))
+			{
+				System::String^ strSeqLoadFile = _LoadSeqDialog();
+			}else
+				
+
 			if(strSeqLoadFile->Length > 0)
 			{
 				bool bAddedOK = true;
@@ -528,6 +540,7 @@ namespace Squeak
         openFileDialogSeq->FilterIndex = 1;
         openFileDialogSeq->RestoreDirectory = true;
   
+
         if ( openFileDialogSeq->ShowDialog() == ::DialogResult::OK )
 			strSeqLoadFile = openFileDialogSeq->FileName;
 

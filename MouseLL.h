@@ -79,11 +79,24 @@ ref class MouseLL : public System::Object
 {
 // constructors
 public:
-	MouseLL(void);
-	MouseLL(System::String^ currentMovieURL, double currentMovieSecs); // only for load
-	MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs);
-	MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, double dNewTime, bool bNewFeed, int iNewArm);
+	
+	//MouseLL(void);
+	//// called new sequence - loading
+	//MouseLL(System::String^ currentMovieURL, double currentMovieSecs); // only for load
+	//// called new sequence - Not recording
+	//MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs);
+	//// called new sequence - Recording
+	//MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, 
+	//	    double dNewTime, bool bNewFeed, int iNewArm);
 
+	MouseLL(void);
+	// called new sequence - loading
+	MouseLL(System::String^ currentMovieURL, double currentMovieSecs, double currentMoviePosition); // only for load
+	// called new sequence - Not recording
+	MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, double currentMoviePosition);
+	// called new sequence - Recording
+	MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, 
+		    double dNewTime, bool bNewFeed, int iNewArm);
 
 // properties
 private:
@@ -108,11 +121,18 @@ private:
 	// max movie time
 	double dMaxMovieSecs;
 
+	// event updates
+	double e_lastTime;     // last event time
+	double e_nextTime;     // next event time
+	double pl_currentTime; // current player time
+	double pl_prevTime;    // previous player time
+	MouseLLEvent^ ev_prevEvent; // previous event
+	MouseLLEvent^ ev_nextEvent; // previous event
+
+	// for tracking
 	int new_EventID;
 
-	#ifdef STATE_CHANGE
-		
-	#endif
+
 // methods
 public: 
 	// number of nodes

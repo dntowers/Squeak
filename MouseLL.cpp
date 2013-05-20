@@ -18,14 +18,24 @@ MouseLLEvent::MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLE
 	nextEvent = new_nextEvent;
 	// event ID
 	EventID = newEventID;
+
 }
 
 #pragma region MouseLL constructors
 MouseLL::MouseLL(void)
 {
 	new_EventID = 0;
-}
 
+	// initialize event updating
+	e_lastTime = -1.0;
+	e_nextTime = -1.0;
+	pl_currentTime = -1.0; // init current player time
+	pl_prevTime = -1.0;    // init previous player time
+	ev_prevEvent = nullptr; // previous event
+	ev_nextEvent = nullptr; // next event
+
+
+}
 
 
 MouseLL::MouseLL(System::String^ currentMovieURL, double currentMovieSecs)
@@ -36,6 +46,14 @@ MouseLL::MouseLL(System::String^ currentMovieURL, double currentMovieSecs)
 	dMaxMovieSecs = currentMovieSecs;
 	// setup event ID
 	new_EventID = 0;
+	// initialize event updating
+	e_lastTime = -1.0;
+	e_nextTime = -1.0;
+	pl_currentTime = -1.0; // init current player time
+	pl_prevTime = -1.0;    // init previous player time
+	ev_prevEvent = nullptr; // previous event
+	ev_nextEvent = nullptr; // next event
+
 }
 
 MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs)
@@ -57,7 +75,13 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	dMaxMovieSecs = currentMovieSecs;
 	// setup event ID
 	new_EventID = 0;
-
+	// initialize event updating
+	e_lastTime = -1.0;
+	e_nextTime = -1.0;
+	pl_currentTime = -1.0; // init current player time
+	pl_prevTime = -1.0;    // init previous player time
+	ev_prevEvent = nullptr; // previous event
+	ev_nextEvent = nullptr; // next event
 }
 
 MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, double dNewTime, bool bNewFeed, int iNewArm)
@@ -79,6 +103,15 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	dMaxMovieSecs = currentMovieSecs;
 	// setup event ID
 	new_EventID = 0;
+
+	// initialize event updating
+	e_lastTime = -1.0;
+	e_nextTime = -1.0;
+	pl_currentTime = -1.0; // init current player time
+	pl_prevTime = -1.0;    // init previous player time
+	ev_prevEvent = nullptr; // previous event
+	ev_nextEvent = nullptr; // next event
+
 
 }
 #pragma endregion
