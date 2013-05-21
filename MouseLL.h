@@ -1,6 +1,9 @@
 #pragma once
 #include "QuickMsgBox.h"
-#pragma region MouseLL
+
+ref class GridRowData;
+//#include "GridRowData.h"
+
 // Linked List mouse event
 ref class MouseLLEvent : public System::Object
 {
@@ -26,6 +29,7 @@ private:
 	// ID
 	int EventID;
 
+	
 
 public:
 	// -----------------------------------------------------access values
@@ -58,7 +62,17 @@ public:
 	bool IsDifferentTime(double dNewTime){return dNewTime != dTimestamp;}
 
 	// ---- data grid
-	void PopulateGridRow(array<System::String^>^ rowDataArray);
+	//void PopulateGridRow(array<System::String^>^ rowDataArray);
+
+	//void PopulateGridVectorRow(GridRowData^ grid_row_data)
+	//{
+	//		grid_row_data->t_event = dTimestamp;
+	//		grid_row_data->feed = bFed;
+	//		grid_row_data->arm = iArm;
+	//}
+	
+	//System::Collections::Generic::List<GridRowData^>^  current_grid_data;
+	//List<System::String^>^ str_list;
 };
 
 public enum class ML_ERR {
@@ -82,6 +96,8 @@ public enum class ML_ERR {
 
 #pragma endregion
 // ---------------------------------------------------- MouseLL -----------------------------------
+
+using namespace System::Collections::Generic;
 
 // Linked List
 ref class MouseLL : public System::Object
@@ -163,6 +179,8 @@ public:
 	// first and last
 	MouseLLEvent^ getFirstEvent(void){return firstEvent;};
 	MouseLLEvent^ getLastEvent(void){return lastEvent;};
+	// next
+	MouseLLEvent^ getNextEvent(MouseLLEvent^ current_event){return current_event->getNextEvent();};
 
 	// test events
 	bool IsPreviousFirst(MouseLLEvent^% testEvent);
@@ -225,8 +243,12 @@ private:
 
 // -------- Data Grid
 	public:
-		// populate grid
-		int PopulateDataGrid(System::Windows::Forms::DataGridView^ dataGridEvents); 
+		// populate grid using text
+		//int PopulateDataGrid(System::Windows::Forms::DataGridView^ dataGridEvents); 
+		// populate using vector
+
+		//int PopulateGridVector(List<MouseLLEvent^>^ grid_row_vector);
+		// List<GridRowData^>^  current_grid_data;
 
 // ----- Find
 public:

@@ -6,6 +6,7 @@
 #include <math.h>
 #include "TimeState.h"
 #include "BtnArray.h"
+#include "GridRowData.h"
 #include "MouseLL.h"		// hand made linked list
 #include "StateChange.h"
 #include "StateChangeLL.h"
@@ -816,17 +817,94 @@ namespace Squeak {
 	{
 		if(mouseLL != nullptr)
 		{
-			if(mouseLL->get_Count() > 0)
+			int event_count = mouseLL->get_Count();
+			if( event_count > 0)
 			{
 				// there are events
 				// dataGridViewEvents
 				dataGridViewEvents->Rows->Clear();
 
-				int iAdded = mouseLL->PopulateDataGrid(dataGridViewEvents); 
-				//FillRows();
+				//int iAdded = mouseLL->PopulateDataGrid(dataGridViewEvents); 
+
+				// ----- fill out list
+				// create vector of mouse event
+				
+				//MouseLLEvent^ grid_row_event;
+
+				// make vector
+				MouseLLEvent^ grid_row_event;
+				//MouseLLEvent^ new_grid_row_event;
+
+				grid_row_event_vector = gcnew List<MouseLLEvent^>();
+
+				int iCount = 0;
+				grid_row_event = mouseLL->getFirstEvent();
+				while(grid_row_event != nullptr)
+				{
+					grid_row_event_vector->Add(grid_row_event);
+					grid_row_event = grid_row_event->getNextEvent();
+					iCount++;
+				}
+
+				//// fille with empty mouse events
+				//for(iIndex = 0; iIndex < event_count; iIndex++)
+				//{
+				//	grid_row_event_vector->Add(grid_row_event)
+				//	//try
+				//	//{
+				//	//	grid_row_event = gcnew MouseLLEvent();
+				//	//	grid_row_event_vector->Add(grid_row_event);
+				//	//}
+				//	//catch(TypeLoadException e)
+				//	//{
+				//	//	System::Windows::Forms::MessageBox::Show(String::Format("Exception at {0}: {1}", iIndex, e));
+				//	//}
+
+				//}
+				//MouseLLEvent^ new_grid_row_event;
+
+				//// get the first event
+				//new_grid_row_event = mouseLL->getFirstEvent();
+
+				//for each(grid_row_event in grid_row_event_vector)
+				//{
+				//	grid_row_event = new_grid_row_event; 
+				//	new_grid_row_event = mouseLL->getNextEvent(grid_row_event);
+				//}
+				//// fille with empty mouse events
+				//for(int iIndex = 0; iIndex < event_count; iIndex++)
+				//{
+				//	grid_row_event = gcnew MouseLLEvent();
+				//	grid_row_event_vector->Add(grid_row_event);
+				//}
+				//
+				//// fill vector of mouse events
+				//mouseLL->PopulateGridVector(grid_row_event_vector);
+
+				// -- fill out grid with test	
+				System::String^ str_movieTime;		// convert to mm::ss.ss
+				
+				// holds row string for data grid dataGridViewEvents
+				array<System::String^>^ rowData = gcnew array<System::String^>(3);
+
+				for each(grid_row_event in grid_row_event_vector)
+				{
+					// format time
+					str_movieTime = MovieTimeToString(grid_row_event->getTimestamp());
+					rowData[0] = str_movieTime;
+
+					// format arm and fed
+					rowData[1] = System::String::Format("{0}",grid_row_event->getArm());
+					rowData[2] = System::String::Format("{0}",grid_row_event->getFed());
+
+					// add data to row
+					dataGridViewEvents->Rows->Add(rowData);
+				}
+
 			}
 		}
 	}
+
 	// enable/disable grid, enable only when not playing and/or recording
 	System::Void Form1::EnableGrid(bool bEnable)
 	{

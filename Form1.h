@@ -75,6 +75,10 @@ namespace Squeak {
 			// state change stack
 			stateLL = nullptr;
 
+			// holds data from grid row
+			grid_row_event_vector = nullptr;
+
+
 #pragma region button array
 			// -- active state array
 			// init array
@@ -177,6 +181,9 @@ namespace Squeak {
 		Color colorDisabledDataGridSelectionFore;
 		Color colorDisabledDataGridSelectionBack;
 
+		List<MouseLLEvent^>^ grid_row_event_vector;
+		//GridRowData^ grid_row_data;
+
 		//LinkedList<MouseEvent^>^ mouseEvents;
 		// events
 		bool bRecording;
@@ -217,14 +224,14 @@ namespace Squeak {
 	private: System::Windows::Forms::Label^  label3;
 	private: System::Windows::Forms::TextBox^  eventLastTextBox;
 	private: System::Windows::Forms::TextBox^  eventFirstTextBox;
-private: System::Windows::Forms::DataGridView^  dataGridViewEvents;
-private: System::Windows::Forms::DataGridViewTextBoxColumn^  gchTime;
-private: System::Windows::Forms::DataGridViewTextBoxColumn^  gchArm;
-private: System::Windows::Forms::DataGridViewTextBoxColumn^  gchFed;
-private: System::Windows::Forms::Button^  btnStepForward;
-private: System::Windows::Forms::Button^  btnStepBack;
-private: System::Windows::Forms::CheckBox^  cb_lockButtons;
-private: System::Windows::Forms::Button^  btn5;
+	private: System::Windows::Forms::DataGridView^  dataGridViewEvents;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  gchTime;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  gchArm;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  gchFed;
+	private: System::Windows::Forms::Button^  btnStepForward;
+	private: System::Windows::Forms::Button^  btnStepBack;
+	private: System::Windows::Forms::CheckBox^  cb_lockButtons;
+	private: System::Windows::Forms::Button^  btn5;
 
 
 

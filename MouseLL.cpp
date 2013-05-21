@@ -21,17 +21,17 @@ MouseLLEvent::MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLE
 
 }
 
-// populate grid row
-void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
-{
-	// convert time to movie stamp
-	double dMinutes = floor(dTimestamp / 60);
-	double dSeconds = fmod(dTimestamp, 60);
-	// add data
-	rowDataArray[0] = System::String::Format("{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
-	rowDataArray[1] = System::String::Format("{0}",iArm);
-	rowDataArray[2] = System::String::Format("{0}",bFed);
-}
+//// populate grid row
+//void MouseLLEvent::PopulateGridRow(array<System::String^>^ rowDataArray)
+//{
+//	// convert time to movie stamp
+//	double dMinutes = floor(dTimestamp / 60);
+//	double dSeconds = fmod(dTimestamp, 60);
+//	// add data
+//	rowDataArray[0] = System::String::Format("{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
+//	rowDataArray[1] = System::String::Format("{0}",iArm);
+//	rowDataArray[2] = System::String::Format("{0}",bFed);
+//}
 
 // ---------------------------------------------------- MouseLL -----------------------------------
 #pragma region MouseLL constructors
@@ -801,26 +801,48 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 #pragma endregion
 
 #pragma region Data Grid
-	int MouseLL::PopulateDataGrid(System::Windows::Forms::DataGridView^ dataGridEvents)
-	{
-		int iAdded = 0;
-		array<System::String^>^rowData = gcnew array<System::String^>(3);
-		MouseLLEvent^ currentEvent = firstEvent;
-		
-		// iterate through list
-		while(currentEvent != nullptr)
-		{
-			// add strings to array
-			currentEvent->PopulateGridRow(rowData);
-			// add data to row
-			dataGridEvents->Rows->Add(rowData);
-			// get pointer to next event
-			currentEvent = currentEvent->getNextEvent();
-			// inc count
-			iAdded++;
-		}
-		return iAdded;
-	}
+	
+	
+	//// vector population of data grid
+	//int MouseLL::PopulateGridVector(List<MouseLLEvent^>^ grid_row_vector)
+	//{
+	//	//List<GridRowData^>
+	//	int iAdded = 0;
+	//	MouseLLEvent^ currentEvent = firstEvent;
+
+	//	for each(MouseLLEvent^%  current_grid_row in grid_row_vector)
+	//	{
+	//		current_grid_row = currentEvent;
+	//		iAdded++;
+	//		currentEvent = currentEvent->getNextEvent();
+	//	}
+
+	//	return iAdded;
+
+	//}
+	//// text population of data grid
+	//int MouseLL::PopulateDataGrid(System::Windows::Forms::DataGridView^ dataGridEvents)
+	//{
+	//	
+
+	//	int iAdded = 0;
+	//	array<System::String^>^rowData = gcnew array<System::String^>(3);
+	//	MouseLLEvent^ currentEvent = firstEvent;
+	//	
+	//	// iterate through list
+	//	while(currentEvent != nullptr)
+	//	{
+	//		// add strings to array
+	//		currentEvent->PopulateGridRow(rowData);
+	//		// add data to row
+	//		dataGridEvents->Rows->Add(rowData);
+	//		// get pointer to next event
+	//		currentEvent = currentEvent->getNextEvent();
+	//		// inc count
+	//		iAdded++;
+	//	}
+	//	return iAdded;
+	//}
 
 #pragma endregion
 

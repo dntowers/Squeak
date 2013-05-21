@@ -1,6 +1,7 @@
 #pragma once
 
 using namespace System::Collections::Generic;
+
 //using namespace System::Windows::Forms;
 ref class StateChangeLL : public System::Object
 {
