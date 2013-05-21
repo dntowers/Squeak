@@ -13,9 +13,10 @@
 #include "Form1.h"
 #include "WTypes.h"
 
-#define STATE_CHANGE
+//#define STATE_CHANGE
 
 using namespace Squeak;
+
 
 
 [STAThreadAttribute]
@@ -304,7 +305,10 @@ namespace Squeak
 					{
 						// there is an event - ADD HERE instead of constructor, so event tracking not updated by addEvent in constructor, then AGAIN
 						//		by setup_loadRecordStart
-						mouseLL->addEvent(dTime, btnArray[iCurrentKey]->bFeeding, iCurrentKey);
+						QuickMsgBox::QTrace("sending addEvent: record on with event\n");	// QQQQQQQ
+						mouseLL->addEvent(dTime, btnArray[iCurrentKey]->bFeeding, iCurrentKey, true); // true = start from record
+
+						QuickMsgBox::QTrace("sending setup_loadRecordStart: record on with event\n");	// QQQQQQQ
 						mouseLL->setup_loadRecordStart();
 					}
 					else
@@ -588,7 +592,7 @@ namespace Squeak
 			{
 				// create new sequence
 				if(Sequence_New(true))
-				{
+				{					
 					bRecording = true;
 					EnableGrid(false);
 				}
@@ -774,7 +778,8 @@ namespace Squeak
 			{
 					
 				// add new event - ADD BOOLEANS BEFORE UPDATE
-				mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey);
+				QuickMsgBox::QTrace("sending addEvent: keystroke\n");
+				mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey, false); // false = not added with start of new sequence, recording, event
 
 				// update form controls
 				UpdateFormEventTimes();
@@ -852,6 +857,10 @@ namespace Squeak {
 		// clicked right button on row header - go to event
 		System::Void Form1::RowClicked_Right(int zeroRowIndex)
 		{
+		}
+		// clicked left button on row header
+		System::Void Form1::RowClicked_Left(int zeroRowIndex)
+		{
 			if(mouseLL != nullptr)
 			{
 				MouseLLEvent^ rowEvent = mouseLL->FindNodeByIndex(zeroRowIndex);
@@ -860,10 +869,6 @@ namespace Squeak {
 					WMP_SetPosition(rowEvent->getTimestamp());
 				}
 			}
-		}
-		// clicked left button on row header
-		System::Void Form1::RowClicked_Left(int zeroRowIndex)
-		{
 
 		}
 #pragma endregion

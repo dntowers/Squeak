@@ -101,6 +101,7 @@
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="FormTextInput.cpp" />
     <ClCompile Include="MouseLL.cpp" />
+    <ClCompile Include="QuickMsgBox.cpp" />
     <ClCompile Include="Squeak.cpp" />
     <ClCompile Include="StateChange.cpp" />
     <ClCompile Include="StateChangeLL.cpp" />
@@ -119,6 +120,7 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="MouseLL.h" />
+    <ClInclude Include="QuickMsgBox.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SC_Enums.h" />
     <ClInclude Include="StateChange.h" />

@@ -146,7 +146,7 @@ public:
 	int get_Count(void){return Count;}
 
 	// add new events
-	bool addEvent(double dNewTime, bool bNewFeed, int iNewArm);
+	bool addEvent(double dNewTime, bool bNewFeed, int iNewArm, bool bStartFromRecord); // bStartFromRecord = true if event added when recording starts
 	bool addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track);
 	bool addLastEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track);
 	

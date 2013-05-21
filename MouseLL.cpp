@@ -158,14 +158,15 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 // buttons
 #pragma region MouseLL add event
 	// add new event
-	bool MouseLL::addEvent(double dNewTime, bool bNewFeed, int iNewArm)
+	bool MouseLL::addEvent(double dNewTime, bool bNewFeed, int iNewArm, bool bStartFromRecord) // bStartFromRecord = true if event added when recording starts
 	{
 		MouseLLEvent^ newLLEvent;
 		int iLocation; // for updating, -1 for before first, 1 for after last, 0 for middle
 
 		if(Count == 0)
 		{
-			// could be here when MouseLL does not exists, an event is on, and recording is started
+			// bStartFromRecord = true if event added after new mouseLL, recording started with event on
+			//			don't update here!  already using setup_loadRecordStart
 
 			// create event
 			newLLEvent = _createEvent(dNewTime, bNewFeed, iNewArm, nullptr, nullptr);
@@ -176,6 +177,30 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			Count++;
 			// set recent
 			recentEvent = newLLEvent;
+
+			if(bStartFromRecord = false)
+			{
+				// update events: only one so far, from recording that started without event on
+				pl_currentTime = dNewTime;
+
+				// events
+				ev_currentEvent = newLLEvent; // others still null
+
+				// event times
+				te_currentTime = dNewTime;
+
+				//double te_currentTime;  // time at or past this, not to next yet
+				//double te_nextTime;     // next event time
+				//double te_prevTime;		// previous event time, after moving (not from playing forward)
+				//double pl_currentTime; // current player time
+				//double pl_prevTime;    // previous player time
+				//MouseLLEvent^ ev_prevEvent;		// previous event
+				//MouseLLEvent^ ev_nextEvent;		// next event
+				//MouseLLEvent^ ev_currentEvent;	// last / current event
+
+			}
+
+			QuickMsgBox::QTrace("addEvent: none existed, time {0}, count {1}\n",dNewTime, Count);
 		}else
 		{
 			// check if time is before or at first
@@ -186,6 +211,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 				{
 					Count++;
 					iLocation = -1;
+					QuickMsgBox::QTrace("addEvent: added before first, time {0}, count {1}\n",dNewTime, Count);
 				}
 			}else
 			{
@@ -197,17 +223,21 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 					{
 						Count++;
 						iLocation = 1;
+						QuickMsgBox::QTrace("addEvent: added after last, time {0}, count {1}\n",dNewTime, Count);
 					}
 				}else
 				{
 					// between current first and last
 					//Count++;
 					//iLocation = 0;
-					System::Diagnostics::Trace::WriteLine( "PLACEHOLDER: New Event Between existing events");
+					QuickMsgBox::QTrace("addEvent: in between (doing nothing): time {0}, count {1}\n",dNewTime, Count);
+					//System::Diagnostics::Trace::WriteLine( "PLACEHOLDER: New Event Between existing events");
 				}
 			}
+			// only do this when events exist
+			update_newEvent(newLLEvent, dNewTime, iLocation);
 		}
-		update_newEvent(newLLEvent, dNewTime, iLocation);
+		
 		// DEBUG
 		// System::Diagnostics::Trace::WriteLine( recentEvent->ToString() );
 		// END DEBUG 
@@ -1219,6 +1249,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			{
 			case	-1:	// new before first
 				{
+					QuickMsgBox::QTrace("update_newEvent: before first, time {0}\n",tm_new);
 					// events
 					ev_prevEvent = ev_currentEvent;
 					ev_currentEvent = newEvent;
@@ -1231,6 +1262,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 				}
 			case	 1:	// new after last
 				{
+					QuickMsgBox::QTrace("update_newEvent: after last, time {0}\n",tm_new);
 					// events
 					ev_prevEvent = ev_currentEvent;
 					ev_currentEvent = newEvent;
@@ -1241,12 +1273,15 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 					te_nextTime = -1.0;		// no next time
 				}
 			case	 0:	// new in the middle of two events
-				System::Diagnostics::Trace::WriteLine( "PLACEHOLDER: Updating for new event between existing");
+				//System::Diagnostics::Trace::WriteLine( "PLACEHOLDER: Updating for new event between existing");
+				QuickMsgBox::QTrace( "PLACEHOLDER: Updating for new event between existing");
 				//{
 				//	ev_currentEvent = newEvent;
 				//}
 			default :
-				System::Diagnostics::Trace::WriteLine( "Default on location of new event in switch in update_newEvent");
+				QuickMsgBox::QTrace("update_newEvent: before first, time {0}\n",tm_new);
+				//System::Diagnostics::Trace::WriteLine( "Default on location of new event in switch in update_newEvent");
+				QuickMsgBox::QTrace( "Default on location of new event in switch in update_newEvent");
 			}
 
 			// update time
@@ -1278,7 +1313,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	{
 		// constructor for new
 		// MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, double currentMoviePosition);
-
+		QuickMsgBox::QTrace("in setup_loadNew\n");	// QQQQQQQ
 		// should be no events
 		if(Count != 0)
 		{
@@ -1295,7 +1330,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		//	MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, double currentMovieSecs, 
 		//		double dNewTime, bool bNewFeed, int iNewArm);
 
-
+		QuickMsgBox::QTrace("in setup_loadRecordStart\n");	// QQQQQQQ
 		if(Count != 1)
 		{
 			QuickMsgBox::MBox(L"Started New sequence by first recording with {0} existing events (should be 1)", Count);
