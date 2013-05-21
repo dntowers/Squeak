@@ -147,8 +147,8 @@ public:
 
 	// add new events
 	bool addEvent(double dNewTime, bool bNewFeed, int iNewArm);
-	bool addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm);
-	bool addLastEvent(double dNewTime, bool bNewFeed, int iNewArm);
+	bool addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track);
+	bool addLastEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track);
 	
 	// tests
 	bool IsBeforeOrAtFirst(double dNewTime){return dNewTime <= firstEvent->getTimestamp();}
@@ -172,10 +172,10 @@ public:
 	// ----- change events ------
 	// send new event based on normal playing and timer, will not send if not passed next event
 	// this should be SLOW - looks through entire list each time
-	MouseLLEvent^ playEvent_All(double tm_new_player);
+	MouseLLEvent^ playEvent_All(double tm_new_player, bool* p_bNoState);
 	
 	// send new event based on normal playing and timer, will not send if not passed next event
-	MouseLLEvent^ playEvent_Timer(double tm_new_player);
+	MouseLLEvent^ playEvent_Timer(double tm_new_player, bool* p_bNoState);
 
 	// update tracking state for playing event change
 	bool _update_playEvent_All(MouseLLEvent^ event_sent, MouseLLEvent^ event_sent_next, double tm_new_player);
@@ -256,6 +256,10 @@ public:
 
 	// set up event tracking variables after first event with record
 	bool setup_loadNew(void);
+
+	// change tracking for new event
+	// iLocation: -1 for before firsEvent, 1 for after lastEvent, 0 for between events
+	bool update_newEvent(MouseLLEvent^ newEvent, double tm_new, int iLocation);
 
 private:
 	// debugging for tracking

@@ -24,16 +24,28 @@ X Check for existing sequence when closing program
 
 setup tracking
 	X Load
-	X new from record
-	X new from button
+	new from record
+	new from button
 
 update player event
-	change in player position --- just go by search now!!!
+X change in player position --- just go by search now!!!
 	(normal play)
 	(state change)
 update tracking
-	play by events
+	X play by events
 	same function for new time?
-		slider
-		step buttons
+		X slider
+		X step buttons
 		grid
+
+
+update events
+	Key --> add event
+		no events?
+	Record, no sequence
+		event on
+			BAD: add event by constructor[addEvent -->  updateEvent] --> setup_loadRecordStart
+				* take out of constructor, add by hand!
+		event off
+			no event added -> setup_loadNew
+

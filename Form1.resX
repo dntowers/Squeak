@@ -141,7 +141,7 @@
   <data name="btnStepBack.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsAAAA7AAWrWiQkAAABXSURBVDhPpYwBCsAgDMR8en+uU+xwGrXHAgFr75oUzCz3
+        YQUAAAAJcEhZcwAADrwAAA68AZW8ckkAAABXSURBVDhPpYwBCsAgDMR8en+uU+xwGrXHAgFr75oUzCz3
         pzPPYWrRlRiL0gEqukeoMItQcOcHCtxs0CIqfiq+0DLiAoVObqEweYVKo2GoXJX5fcB5yikXwP6J+P1j
         JV4AAAAASUVORK5CYII=
 </value>
@@ -149,7 +149,7 @@
   <data name="btnStepForward.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsAAAA7AAWrWiQkAAABUSURBVDhPpYxBDsAgDMPy/08POqkINgOlWDIHmkSVx54b
+        YQUAAAAJcEhZcwAADrwAAA68AZW8ckkAAABUSURBVDhPpYxBDsAgDMPy/08POqkINgOlWDIHmkSVx54b
         bMBN0Q+khmjADUHFr0uoMBOh4M4BCkR9ocOJ+BmxQceVPyhETqFw7xYqmWHSRSddlKQCp02HeTtez5QA
         AAAASUVORK5CYII=
 </value>
@@ -171,5 +171,14 @@
   </metadata>
   <metadata name="timerControl.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>291, 17</value>
+  </metadata>
+  <metadata name="gchTime.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="gchArm.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="gchFed.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
   </metadata>
 </root>

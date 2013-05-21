@@ -15,4 +15,12 @@
 		// quick message box with TWO objects
 		static void MBox(System::String^ msg, Object^ obj1, Object^ obj2);
 
+		// quick trace
+		static void QTrace(System::String^ msg);
+		// quick trace
+		static void QTrace(System::String^ msg, Object^ obj1);
+		// quick trace
+		static void QTrace(System::String^ msg, Object^ obj1, Object^ obj2);
+
+
 	};

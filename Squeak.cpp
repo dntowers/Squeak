@@ -286,22 +286,38 @@ namespace Squeak
 					bAddedOK = true;
 					try
 					{
-						mouseLL = gcnew MouseLL(strNewName, axWindowsMediaPlayer1->URL, WMP_Duration(), dTime, btnArray[iCurrentKey]->bFeeding, iCurrentKey);
+						// make sure we are in an event state
+						if(iCurrentKey > 0)
+							mouseLL = gcnew MouseLL(strNewName, axWindowsMediaPlayer1->URL, WMP_Duration(), dTime, btnArray[iCurrentKey]->bFeeding, iCurrentKey);
+						else
+							mouseLL = gcnew MouseLL(strNewName, axWindowsMediaPlayer1->URL, WMP_Duration(), WMP_GetPosition());
 					}
 					catch (OutOfMemoryException ^e)
 					{
 						MessageBox::Show( String::Format("New MouseLL: OutOfMemoryException Handler: {0}", e) );
 						bAddedOK = false;
 					}
-					// set up tracking for new events with first record
-					mouseLL->setup_loadRecordStart();
-					// update form controls
-					UpdateFormEventTimes();
+					// set up tracking for new events with first record 
+					// *** we will only be here when record is started without a sequence!!!
+					// check if we actually have an event
+					if(iCurrentKey > 0)	// check
+					{
+						// there is an event - ADD HERE instead of constructor, so event tracking not updated by addEvent in constructor, then AGAIN
+						//		by setup_loadRecordStart
+						mouseLL->addEvent(dTime, btnArray[iCurrentKey]->bFeeding, iCurrentKey);
+						mouseLL->setup_loadRecordStart();
+					}
+					else
+					{
+						// no event, treat as new
+						mouseLL->setup_loadNew();
+					}
 					// IMPLEMENT NEW STATE CHANCE STACK ???
 					#ifdef STATE_CHANGE
 						try
 						{
-							stateLL = gcnew StateChangeLL();
+							if(iCurrentKey > 0)
+								stateLL = gcnew StateChangeLL();
 						}
 						catch (OutOfMemoryException ^e)
 						{
@@ -310,8 +326,8 @@ namespace Squeak
 						}
 					#endif
 					
-
-					if(bAddedOK)
+					// check both added OK and there was an event	
+					if(bAddedOK && (iCurrentKey > 0))
 					{
 						UpdateFormEventTimes(); // update form times, this event is the first and last
 						// add the new single event
@@ -630,11 +646,20 @@ namespace Squeak
 			{
 				if(mouseLL != nullptr)
 				{
-					MouseLLEvent^ me_sent = mouseLL->playEvent_All(dWmpPosition);
+					bool bNoState = true;
+					MouseLLEvent^ me_sent = mouseLL->playEvent_All(dWmpPosition, &bNoState);
 					if(me_sent != nullptr)
 					{
 						// new event
 						_StateSetButtonState(me_sent->getArm(), me_sent->getFed());
+					}else
+					{
+						// sent null pointer, either not new state or not state at all
+						if(bNoState)
+						{
+							// no current state!
+							_StateSetButtonStateNone();
+						}
 					}
 				}
 			}
@@ -676,7 +701,11 @@ namespace Squeak
 		_SetButtonState(iArm, bFeeding, false);
 
 	}
-
+	// currently in no state (e.g. no events, or before first)
+	System::Void Form1::_StateSetButtonStateNone(void)
+	{
+		_SetButtonState(-1, false, false); // reset all buttons
+	}
 	// sets visible button state (bControl == feeding), e = nullptr if not user generated
 	System::Void Form1::_SetButtonState(int iArm, bool bFeeding, bool bRecording)
 	{
@@ -684,14 +713,19 @@ namespace Squeak
 		bool bIsFeeding;
 		int iButtonIndex;
 		// check if this is a state change
-		if((iCurrentKey != iArm) || (bFeeding != btnArray[iArm]->bFeeding))
+		bool bNewFeeding;	// need to do this in case no arm (no event)
+		if(iArm > 0)
+			bNewFeeding = btnArray[iArm]->bFeeding;
+		else
+			bNewFeeding = false;
+		if((iCurrentKey != iArm) || (bFeeding != bNewFeeding))
 		{
 			// change from current state
 			// iterate through buttons
 			for(iButtonIndex = 0; iButtonIndex < 10; iButtonIndex++)
 			{
 				// check if this matches arm
-				if(iButtonIndex == iArm)
+				if(iButtonIndex == iArm)	// should nevet match if no event
 				{
 					// button matches arm
 					btnArray[iButtonIndex]->bOn = true;
@@ -733,7 +767,7 @@ namespace Squeak
 
 
 		//  ---------------- IF Recording, Add Event --------------------
-		if(bRecording)
+		if(bRecording && (iArm>0))
 		{
 			// addEvent(double dNewTime, bool bNewFed, int iNewArm)
 			if(mouseLL != nullptr)

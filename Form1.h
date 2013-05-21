@@ -64,7 +64,7 @@ namespace Squeak {
 
 			// input
 			bKeyHandled = false;
-			iCurrentKey = 5;		// init to no arm state
+			iCurrentKey = -1;		// init to no arm state
 			//bFeeding = false;		// init to not feeding
 
 			// --- events
@@ -94,7 +94,7 @@ namespace Squeak {
 			btnArray[2]->btn = btn2; 
 			btnArray[3]->btn = btn3; 
 			btnArray[4]->btn = btn4; 
-			//btnArray[5]->btn = nullptr; 
+			btnArray[5]->btn = btn5; 
 			btnArray[6]->btn = btn6; 
 			btnArray[7]->btn = btn7; 
 			btnArray[8]->btn = btn8; 
@@ -224,6 +224,10 @@ private: System::Windows::Forms::DataGridViewTextBoxColumn^  gchFed;
 private: System::Windows::Forms::Button^  btnStepForward;
 private: System::Windows::Forms::Button^  btnStepBack;
 private: System::Windows::Forms::CheckBox^  cb_lockButtons;
+private: System::Windows::Forms::Button^  btn5;
+
+
+
 
 
 
@@ -289,6 +293,7 @@ private: System::Windows::Forms::CheckBox^  cb_lockButtons;
 			this->btnStepForward = (gcnew System::Windows::Forms::Button());
 			this->btnStepBack = (gcnew System::Windows::Forms::Button());
 			this->cb_lockButtons = (gcnew System::Windows::Forms::CheckBox());
+			this->btn5 = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->axWindowsMediaPlayer1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->eventLog1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->rateUpDown))->BeginInit();
@@ -755,11 +760,25 @@ private: System::Windows::Forms::CheckBox^  cb_lockButtons;
 			this->cb_lockButtons->Text = L"Lock Button Movement";
 			this->cb_lockButtons->UseVisualStyleBackColor = true;
 			// 
+			// btn5
+			// 
+			this->btn5->BackColor = System::Drawing::SystemColors::InactiveCaptionText;
+			this->btn5->FlatAppearance->BorderColor = System::Drawing::SystemColors::ActiveCaptionText;
+			this->btn5->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->btn5->Location = System::Drawing::Point(475, 240);
+			this->btn5->Name = L"btn5";
+			this->btn5->Size = System::Drawing::Size(15, 15);
+			this->btn5->TabIndex = 34;
+			this->btn5->Tag = L"Button5C";
+			this->btn5->UseVisualStyleBackColor = false;
+			this->btn5->Click += gcnew System::EventHandler(this, &Form1::btn5_Click);
+			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1024, 762);
+			this->Controls->Add(this->btn5);
 			this->Controls->Add(this->cb_lockButtons);
 			this->Controls->Add(this->btnStepBack);
 			this->Controls->Add(this->btnStepForward);
@@ -948,6 +967,9 @@ private:
 		System::Void btn6_Click(System::Object^  sender, System::EventArgs^  e) {
 			DirectionButtonPressed(btn6);
 		 }
+		System::Void btn5_Click(System::Object^  sender, System::EventArgs^  e) {
+			DirectionButtonPressed(btn5);
+		 }
 #pragma endregion
 
 #pragma region Form Events: data grid
@@ -1075,6 +1097,8 @@ private:
 	System::Void _KeyboardSetButtonState(System::Windows::Forms::KeyEventArgs^  e);
 	// set button from forced state, prevents recording
 	System::Void _StateSetButtonState(int iArm, bool bFeeding);
+	// call this if not in any state
+	System::Void _StateSetButtonStateNone(void);
 	// sets visible button state (bControl == feeding)
 	System::Void _SetButtonState(int iArm, bool bFeeding, bool bRecording);
 	// use to ket gey codes from button down

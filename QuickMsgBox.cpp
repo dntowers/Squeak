@@ -29,3 +29,26 @@ void QuickMsgBox::MBox(System::String^ msg, Object^ obj1, Object^ obj2)
 	strFormat = System::String::Format(msg, obj1, obj2);
 	System::Windows::Forms::MessageBox::Show(strFormat);
 }
+
+// quick trace
+void QuickMsgBox::QTrace(System::String^ msg)
+{
+	System::Diagnostics::Trace::WriteLine( msg );
+}
+// quick trace
+void QuickMsgBox::QTrace(System::String^ msg, Object^ obj1)
+{
+
+	System::String^ strFormat;
+	strFormat = System::String::Format(msg, obj1);
+	System::Diagnostics::Trace::WriteLine( strFormat );
+
+}
+// quick trace
+void QuickMsgBox::QTrace(System::String^ msg, Object^ obj1, Object^ obj2)
+{
+	System::String^ strFormat;
+	strFormat = System::String::Format(msg, obj1, obj2);
+	System::Diagnostics::Trace::WriteLine( strFormat );
+}
+	

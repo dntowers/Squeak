@@ -146,8 +146,9 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	ev_nextEvent	= nullptr;					// next event
 	ev_currentEvent = nullptr;				// current event
 
-	// ADD NEW EVENT
-	addEvent(dNewTime, bNewFeed, iNewArm);
+	// ADD NEW EVENT - no, will do update twice: once from end of Add event (count = 0), once from setup_loadRecordStart
+	//if(iNewArm!=-1) // only add if there is an event state
+	//	addEvent(dNewTime, bNewFeed, iNewArm);
 
 }
 #pragma endregion
@@ -159,10 +160,15 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	// add new event
 	bool MouseLL::addEvent(double dNewTime, bool bNewFeed, int iNewArm)
 	{
+		MouseLLEvent^ newLLEvent;
+		int iLocation; // for updating, -1 for before first, 1 for after last, 0 for middle
+
 		if(Count == 0)
 		{
+			// could be here when MouseLL does not exists, an event is on, and recording is started
+
 			// create event
-			MouseLLEvent^ newLLEvent = _createEvent(dNewTime, bNewFeed, iNewArm, nullptr, nullptr);
+			newLLEvent = _createEvent(dNewTime, bNewFeed, iNewArm, nullptr, nullptr);
 			// set internal pointers
 			firstEvent = newLLEvent;
 			lastEvent = newLLEvent;
@@ -176,22 +182,32 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			if(IsBeforeOrAtFirst(dNewTime))
 			{
 				// inserted before, or if same time replaced arm and fed
-				if(addFirstEvent(dNewTime, bNewFeed, iNewArm))
+				if(addFirstEvent(dNewTime, bNewFeed, iNewArm, newLLEvent))
+				{
 					Count++;
+					iLocation = -1;
+				}
 			}else
 			{
 				// check if time is after or at last
 				if(IsAfterOrAtLast(dNewTime))
 				{
 					// inserted after, or if same time replaced arm and fed
-					if(addLastEvent(dNewTime, bNewFeed, iNewArm))
+					if(addLastEvent(dNewTime, bNewFeed, iNewArm, newLLEvent))
+					{
 						Count++;
+						iLocation = 1;
+					}
 				}else
 				{
 					// between current first and last
+					//Count++;
+					//iLocation = 0;
+					System::Diagnostics::Trace::WriteLine( "PLACEHOLDER: New Event Between existing events");
 				}
 			}
 		}
+		update_newEvent(newLLEvent, dNewTime, iLocation);
 		// DEBUG
 		// System::Diagnostics::Trace::WriteLine( recentEvent->ToString() );
 		// END DEBUG 
@@ -199,7 +215,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		return true;
 	}
 	// add event to beginning
-	bool MouseLL::addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm)
+	bool MouseLL::addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track)
 	{
 		bool bReturn = false;
 		// check if new event time is before first event
@@ -215,6 +231,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 				// set recent
 				recentEvent = newEvent;
 				bReturn =  true;
+				new_event_track = newEvent;
 			}
 			else
 				bReturn = false; // something went wrong
@@ -224,6 +241,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			_replaceEventParams(bNewFeed, iNewArm, firstEvent);
 			// set recent
 			recentEvent = firstEvent;
+			new_event_track = firstEvent;
 			bReturn =  true;
 		}
 
@@ -232,7 +250,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	}
 	
 	// add last to beginning
-	bool MouseLL::addLastEvent(double dNewTime, bool bNewFeed, int iNewArm)
+	bool MouseLL::addLastEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track)
 	{
 		bool bReturn = false;
 		// check if new event time is before first event
@@ -248,6 +266,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 				// set recent
 				recentEvent = newEvent;
 				bReturn =  true;
+				new_event_track = newEvent;
 			}
 			else
 				bReturn = false; // something went wrong
@@ -257,6 +276,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			_replaceEventParams(bNewFeed, iNewArm, lastEvent);
 			// set recent
 			recentEvent = lastEvent;
+			new_event_track = lastEvent;
 			bReturn =  true;
 		}
 		return bReturn;
@@ -267,7 +287,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	{
 			// create new event
 			MouseLLEvent^ newEvent = gcnew MouseLLEvent(dNewTime, bNewFeed, iNewArm, new_prevEvent, new_nextEvent, new_EventID);
-			// increment tracker
+			// increment Event ID tracker
 			new_EventID++;
 			return newEvent;
 	}
@@ -1090,7 +1110,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	// -------- this will return for ALL player position types
 	// -------- slow?
 	//	searches each time, does not depend on time change, relative position
-	MouseLLEvent^ MouseLL::playEvent_All(double tm_new_player)
+	MouseLLEvent^ MouseLL::playEvent_All(double tm_new_player, bool* p_bNoState)
 	{
 
 //if(tm_new_player >= te_nextTime)
@@ -1108,11 +1128,19 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			System::Windows::Forms::MessageBox::Show(System::String::Format("Error in finding event node at time {0} (playEvent_All)", tm_new_player));
 			return nullptr;
 		}
-
+		// by default, assume state
+		*p_bNoState = false;
 		if(new_me == ev_currentEvent)
 		{
-			// no change
 			return nullptr;
+		}else
+		{
+			if(new_me == nullptr)
+			{
+				// not in state
+				*p_bNoState = true;
+				return nullptr;
+			}
 		}
 
 		// --- new event
@@ -1126,7 +1154,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	}
 
 	// send new event based on normal playing and timer, will not send nullptr if not past next event
-	MouseLLEvent^ MouseLL::playEvent_Timer(double tm_new_player)
+	MouseLLEvent^ MouseLL::playEvent_Timer(double tm_new_player, bool* p_bNoState)
 	{
 		// -------- this will only test whether new time is passed new event
 		return nullptr;
@@ -1163,6 +1191,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		if(event_sent != nullptr)		// update current time if not nullptr
 			te_currentTime = event_sent->getTimestamp();
 		else
+			// nullptr, check event next
 			te_currentTime = -1.0;
 
 		if(event_sent_next!= nullptr)  // update current next time if not nullptr
@@ -1176,7 +1205,74 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 #pragma endregion
 
 
-#pragma region setup tracking variable functions
+#pragma region new event and setup tracking variable functions
+	// change tracking for new event
+	// iLocation: -1 for before firsEvent, 1 for after lastEvent, 0 for between events
+	// NOTE: new event may just be update of first or last event
+	bool MouseLL::update_newEvent(MouseLLEvent^ newEvent, double tm_new, int iLocation)
+	{
+		// newEvent == ev_currentEvent then just updated parameters
+		if(newEvent != ev_currentEvent)
+		{
+			// actual new event - firstEvent and lastEvent will already be updated
+			switch( iLocation) 
+			{
+			case	-1:	// new before first
+				{
+					// events
+					ev_prevEvent = ev_currentEvent;
+					ev_currentEvent = newEvent;
+					ev_nextEvent = ev_currentEvent->getNextEvent();
+					// event times
+					te_prevTime = te_currentTime;
+					te_currentTime = tm_new;
+					te_nextTime = ev_nextEvent->getTimestamp();
+						
+				}
+			case	 1:	// new after last
+				{
+					// events
+					ev_prevEvent = ev_currentEvent;
+					ev_currentEvent = newEvent;
+					ev_nextEvent = nullptr;  // new last
+					// event times
+					te_prevTime = te_currentTime;
+					te_currentTime = tm_new;
+					te_nextTime = -1.0;		// no next time
+				}
+			case	 0:	// new in the middle of two events
+				System::Diagnostics::Trace::WriteLine( "PLACEHOLDER: Updating for new event between existing");
+				//{
+				//	ev_currentEvent = newEvent;
+				//}
+			default :
+				System::Diagnostics::Trace::WriteLine( "Default on location of new event in switch in update_newEvent");
+			}
+
+			// update time
+			pl_prevTime = pl_currentTime;
+			pl_currentTime = tm_new;
+
+			//double pl_currentTime; // current player time
+			//double pl_prevTime;    // previous player time
+			//
+			//// event updates
+			//double te_currentTime;  // time at or past this, not to next yet
+			//double te_nextTime;     // next event time
+			//double te_prevTime;		// previous event time, after moving (not from playing forward)
+			//
+			//double pl_currentTime; // current player time
+			//double pl_prevTime;    // previous player time
+			//
+			//MouseLLEvent^ ev_prevEvent;		// previous event
+			//MouseLLEvent^ ev_nextEvent;		// next event
+			//MouseLLEvent^ ev_currentEvent;	// last / current event
+
+		}
+
+		return true;
+	}
+
 	// set up event tracking variables when new without record
 	bool MouseLL::setup_loadNew(void)
 	{
