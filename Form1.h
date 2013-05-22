@@ -251,6 +251,9 @@ namespace Squeak {
 	private: System::Windows::Forms::CheckBox^  cb_lockButtons;
 	private: System::Windows::Forms::Button^  btn5;
 private: System::Windows::Forms::Button^  btnReloadGrid;
+private: System::Windows::Forms::Button^  btn_gridRemove;
+private: System::Windows::Forms::Button^  btn_grdAddAfter;
+private: System::Windows::Forms::Button^  btn_gridAddBefore;
 
 
 
@@ -322,6 +325,9 @@ private: System::Windows::Forms::Button^  btnReloadGrid;
 			this->cb_lockButtons = (gcnew System::Windows::Forms::CheckBox());
 			this->btn5 = (gcnew System::Windows::Forms::Button());
 			this->btnReloadGrid = (gcnew System::Windows::Forms::Button());
+			this->btn_gridAddBefore = (gcnew System::Windows::Forms::Button());
+			this->btn_grdAddAfter = (gcnew System::Windows::Forms::Button());
+			this->btn_gridRemove = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->axWindowsMediaPlayer1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->eventLog1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->rateUpDown))->BeginInit();
@@ -815,11 +821,50 @@ private: System::Windows::Forms::Button^  btnReloadGrid;
 			this->btnReloadGrid->UseVisualStyleBackColor = true;
 			this->btnReloadGrid->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &Form1::btnReloadGrid_MouseClick);
 			// 
+			// btn_gridAddBefore
+			// 
+			this->btn_gridAddBefore->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(0)));
+			this->btn_gridAddBefore->Location = System::Drawing::Point(753, 152);
+			this->btn_gridAddBefore->Name = L"btn_gridAddBefore";
+			this->btn_gridAddBefore->Size = System::Drawing::Size(80, 24);
+			this->btn_gridAddBefore->TabIndex = 36;
+			this->btn_gridAddBefore->Text = L"Add Before";
+			this->btn_gridAddBefore->UseVisualStyleBackColor = true;
+			this->btn_gridAddBefore->Click += gcnew System::EventHandler(this, &Form1::btn_gridAddBefore_Click);
+			// 
+			// btn_grdAddAfter
+			// 
+			this->btn_grdAddAfter->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(0)));
+			this->btn_grdAddAfter->Location = System::Drawing::Point(835, 152);
+			this->btn_grdAddAfter->Name = L"btn_grdAddAfter";
+			this->btn_grdAddAfter->Size = System::Drawing::Size(80, 24);
+			this->btn_grdAddAfter->TabIndex = 37;
+			this->btn_grdAddAfter->Text = L"Add After";
+			this->btn_grdAddAfter->UseVisualStyleBackColor = true;
+			this->btn_grdAddAfter->Click += gcnew System::EventHandler(this, &Form1::btn_grdAddAfter_Click);
+			// 
+			// btn_gridRemove
+			// 
+			this->btn_gridRemove->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(0)));
+			this->btn_gridRemove->Location = System::Drawing::Point(918, 152);
+			this->btn_gridRemove->Name = L"btn_gridRemove";
+			this->btn_gridRemove->Size = System::Drawing::Size(80, 24);
+			this->btn_gridRemove->TabIndex = 38;
+			this->btn_gridRemove->Text = L"Remove";
+			this->btn_gridRemove->UseVisualStyleBackColor = true;
+			this->btn_gridRemove->Click += gcnew System::EventHandler(this, &Form1::btn_gridRemove_Click);
+			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1024, 762);
+			this->Controls->Add(this->btn_gridRemove);
+			this->Controls->Add(this->btn_grdAddAfter);
+			this->Controls->Add(this->btn_gridAddBefore);
 			this->Controls->Add(this->btnReloadGrid);
 			this->Controls->Add(this->btn5);
 			this->Controls->Add(this->cb_lockButtons);
@@ -1067,6 +1112,21 @@ private:
 #pragma endregion
 
 #pragma region Form Events: other
+		// clicked add event before button
+		private: System::Void btn_gridAddBefore_Click(System::Object^  sender, System::EventArgs^  e) {
+QuickMsgBox::QTrace("<Add Before Clicked {0}>", WMP_GetPosition()); 
+				_Grid_AddRemoveEvents(-1);
+		}
+		// clicked add event after button
+		private: System::Void btn_grdAddAfter_Click(System::Object^  sender, System::EventArgs^  e) {
+QuickMsgBox::QTrace("<Add After Clicked {0}>", WMP_GetPosition()); 
+				_Grid_AddRemoveEvents(1);
+		 }
+		// clicked remove event button
+		private: System::Void btn_gridRemove_Click(System::Object^  sender, System::EventArgs^  e) {
+				 _Grid_AddRemoveEvents(0);
+		 }
+
 		// toggle between play and record events
 		System::Void btnRecordEvents_Click(System::Object^  sender, System::EventArgs^  e) {
 			ToggleRecording();
@@ -1106,12 +1166,7 @@ private:
 			if(!WMP_IsPlaying())
 			{
 				((WMPLib::IWMPControls2^)axWindowsMediaPlayer1->Ctlcontrols)->step(1);
-
-				QuickMsgBox::QTrace("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CLICK FORWARD\n");
-
 				_UpdateFromStep();
-
-				QuickMsgBox::QTrace("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ END (CLICK FORWARD)\n");
 			}
 		}
 		// step back
@@ -1119,13 +1174,7 @@ private:
 			if(!WMP_IsPlaying())
 			{
 				((WMPLib::IWMPControls2^)axWindowsMediaPlayer1->Ctlcontrols)->step(-1);
-
-				QuickMsgBox::QTrace("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CLICK BACK\n");
-
 				_UpdateFromStep();
-
-				QuickMsgBox::QTrace("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ END (CLICK BACK)\n");
-
 			}
 		}
 		// update from step clicks
@@ -1134,13 +1183,7 @@ private:
 				double newPos = WMP_GetPosition();
 				//tbStateChange->Text = MovieTimeToString(newPos);
 				Update_Time_Box(newPos, L"_UpdateFromStep");
-
-				QuickMsgBox::QTrace("BEFORE playEvent_NoTimer:  Pos = {0}\n", newPos);
-				
 				MouseLLEvent^ me_sent = mouseLL->playEvent_NoTimer(newPos, &bNoState);
-
-				QuickMsgBox::QTrace("AFTER playEvent_NoTimer:  Pos = {0}", newPos);
-
 				_UpdateFrom_PlayEvent(me_sent, bNoState);
 		}
 		
@@ -1218,7 +1261,7 @@ private:
 		// remove event at selection
 		bool _Grid_RemoveEvent(int iRow_NZ);
 		// add before or after selection
-		bool _Grid_AddEvent(int iRow_NZ, iType);
+		bool _Grid_AddEvent(int iRow_NZ, int iType);
 
 #pragma endregion
 

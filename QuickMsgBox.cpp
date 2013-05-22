@@ -52,6 +52,14 @@ void QuickMsgBox::QTrace(System::String^ msg, Object^ obj1, Object^ obj2)
 	System::Diagnostics::Trace::WriteLine( strFormat );
 }
 
+// quick trace
+void QuickMsgBox::QTrace(System::String^ msg, Object^ obj1, Object^ obj2, Object^ obj3)
+{
+	System::String^ strFormat;
+	strFormat = System::String::Format(msg, obj1, obj2, obj3);
+	System::Diagnostics::Trace::WriteLine( strFormat );
+}
+
 // trace event
 void QuickMsgBox::QEvent(System::String^ e_name, Object^ obj1)
 {

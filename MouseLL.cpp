@@ -1161,11 +1161,17 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	// called without a timer event
 	MouseLLEvent^ MouseLL::playEvent_NoTimer(double tm_new_player, bool* p_bNoState)
 	{
-		QuickMsgBox::QTrace("\n\n--------------------------------------playEvent_NoTimer: time {0}\n",tm_new_player);
+
+		if(firstEvent == nullptr) // no events!
+		{
+			*p_bNoState = true;
+			return nullptr;
+		}
+		/*QuickMsgBox::QTrace("\n\n--------------------------------------playEvent_NoTimer: time {0}\n",tm_new_player);
 		QuickMsgBox::QEvent("ev_currentEvent", ev_currentEvent);
 		QuickMsgBox::QEvent("ev_nextEvent", ev_nextEvent);
 		QuickMsgBox::QEvent("firstEvent", firstEvent);
-		QuickMsgBox::QEvent("lastEvent", lastEvent);
+		QuickMsgBox::QEvent("lastEvent", lastEvent);*/
 
 
 		// currently this is the same code as MouseLL::playEvent_All
@@ -1181,14 +1187,13 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 
 
 		// --- new event
-		QuickMsgBox::QTrace("\n---AFTER: _search_NoPreviousNode --");
-
+		/*QuickMsgBox::QTrace("\n---AFTER: _search_NoPreviousNode --");
 		QuickMsgBox::QEvent("new_me", new_me);
 		QuickMsgBox::QEvent("new_next_me", new_next_me);
 		QuickMsgBox::QEvent("ev_currentEvent", ev_currentEvent);
 		QuickMsgBox::QEvent("ev_nextEvent", ev_nextEvent);
 		QuickMsgBox::QEvent("firstEvent", firstEvent);
-		QuickMsgBox::QEvent("lastEvent", lastEvent);
+		QuickMsgBox::QEvent("lastEvent", lastEvent);*/
 
 
 		// by default, assume state
@@ -1216,11 +1221,11 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		// update event being sent
 		_update_playEvent_All(new_me, new_next_me, tm_new_player);
 		
-		QuickMsgBox::QTrace("\n-- AFTER: _update_playEvent_All --");
+		/*QuickMsgBox::QTrace("\n-- AFTER: _update_playEvent_All --");
 		QuickMsgBox::QEvent("ev_currentEvent", ev_currentEvent);
 		QuickMsgBox::QEvent("ev_nextEvent", ev_nextEvent);
 		QuickMsgBox::QEvent("firstEvent", firstEvent);
-		QuickMsgBox::QEvent("lastEvent", lastEvent);
+		QuickMsgBox::QEvent("lastEvent", lastEvent);*/
 
 
 		// return new event - may be nullptr if before events
@@ -1233,11 +1238,11 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	MouseLLEvent^ MouseLL::playEvent_All(double tm_new_player, bool* p_bNoState)
 	{
 
-//if(tm_new_player >= te_nextTime)
-//{
-//	bool bFunk;
-//	bFunk = true;
-//}
+		if(firstEvent == nullptr) // no events!
+		{
+			*p_bNoState = true;
+			return nullptr;
+		}
 
 		MouseLLEvent^ new_me;
 		MouseLLEvent^ new_next_me;		// don't care about this so much
@@ -1417,7 +1422,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			{
 			case	-1:	// new before first
 				{
-					QuickMsgBox::QTrace("update_newEvent: before first, time {0}\n",tm_new);
+					//QuickMsgBox::QTrace("update_newEvent: before first, time {0}\n",tm_new);
 					// events
 					ev_prevEvent = ev_currentEvent;
 					ev_currentEvent = newEvent;
@@ -1426,11 +1431,11 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 					te_prevTime = te_currentTime;
 					te_currentTime = tm_new;
 					te_nextTime = ev_nextEvent->getTimestamp();
-						
+					break;	
 				}
 			case	 1:	// new after last
 				{
-					QuickMsgBox::QTrace("update_newEvent: after last, time {0}\n",tm_new);
+					//QuickMsgBox::QTrace("update_newEvent: after last, time {0}\n",tm_new);
 					// events
 					ev_prevEvent = ev_currentEvent;
 					ev_currentEvent = newEvent;
@@ -1439,17 +1444,18 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 					te_prevTime = te_currentTime;
 					te_currentTime = tm_new;
 					te_nextTime = -1.0;		// no next time
+					break;
 				}
 			case	 0:	// new in the middle of two events
-				//System::Diagnostics::Trace::WriteLine( "PLACEHOLDER: Updating for new event between existing");
-				QuickMsgBox::QTrace( "PLACEHOLDER: Updating for new event between existing");
-				//{
-				//	ev_currentEvent = newEvent;
-				//}
-			default :
-				QuickMsgBox::QTrace("update_newEvent: before first, time {0}\n",tm_new);
+				{
+					QuickMsgBox::QTrace( "PLACEHOLDER: Updating for new event between existing");
+					ev_currentEvent = newEvent;
+					break;
+				}
+			//default	 :
+				//QuickMsgBox::QTrace("update_newEvent: before first, time {0}\n",tm_new);
 				//System::Diagnostics::Trace::WriteLine( "Default on location of new event in switch in update_newEvent");
-				QuickMsgBox::QTrace( "Default on location of new event in switch in update_newEvent");
+				//QuickMsgBox::QTrace( "Default on location of new event in switch in update_newEvent");
 			}
 
 			// update time
@@ -1605,6 +1611,162 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		DEBUG_TRACKING();
 		return true;
 	}
+#pragma endregion
+
+#pragma region node add or remove
+
+// add a node, either before or after the specified node, -1 is before, +1 is after
+bool MouseLL::AddEventAt(MouseLLEvent^ addAtNode, double dNewTime, int iNewArm, bool bNewFed, int iDirection)
+{
+	// find pair of nodes to add between - given node -1 or +1
+	//		check empty node before (firstEvent) or after (lastEvent)
+
+	// used for directions on new node
+	MouseLLEvent^ prevNode;	// if addNode == first, this will be null
+	MouseLLEvent^ nextNode; // if addNode == last, this will be null
+	
+	//// get next event
+	//MouseLLEvent^ getNextEvent(void){return nextEvent;};
+	//// get previous event
+	//MouseLLEvent^ getPreviousEvent(void){return prevEvent;};
+
+	// E(X) = addAtNode, 
+	// E(X-1) = node currently BEFORE E(X)
+	// E(X+1) = node currently AFTER  E(X)
+	// E(new) = node to be added
+	
+	// get directions for node pointers
+QuickMsgBox::QTrace("--- BEFORE ADD\n"); 
+QuickMsgBox::QTrace("Adding event at {0}: before or after = {1}", addAtNode->ToString(), iDirection); 
+QuickMsgBox::QTrace("New Time = {0}", dNewTime); 
+
+	if(iDirection == -1)
+	{
+		// adding before current
+		prevNode = addAtNode->getPreviousEvent();	// E(X-1), will be E(new - 1), may be null
+		nextNode = addAtNode;						// E(X), will be new E(new + 1), should never be null
+
+QuickMsgBox::QTrace("Previous = E(X-1), Next = E(X)"); 
+
+	}else
+	{
+		// adding add current
+		prevNode = addAtNode;						// E(X), will be E(new - 1), should never be null
+		nextNode = addAtNode->getNextEvent();		// E(X+1), will be may E(new+1), may be null 
+
+QuickMsgBox::QTrace("Previous = E(X), Next = E(X+1)"); 
+
+	}
+
+// before add
+if(prevNode!=nullptr)
+	QuickMsgBox::QTrace("Previous= {0}", prevNode->ToString()); 
+else
+	QuickMsgBox::QTrace("Previous= nullptr"); 
+
+//QuickMsgBox::QTrace("Current= {0}", addAtNode->ToString()); 
+
+if(nextNode!=nullptr)
+	QuickMsgBox::QTrace("Next= {0}", nextNode->ToString()); 
+else
+	QuickMsgBox::QTrace("Next= nullptr"); 
+
+if(ev_currentEvent!=nullptr)
+	QuickMsgBox::QTrace("ev_currentEvent= {0}", ev_currentEvent->ToString()); 
+else
+	QuickMsgBox::QTrace("ev_currentEvent= nullptr"); 
+
+if(ev_nextEvent!=nullptr)
+	QuickMsgBox::QTrace("ev_nextEvent= {0}", ev_nextEvent->ToString()); 
+else
+	QuickMsgBox::QTrace("ev_nextEvent= nullptr"); 
+
+
+	MouseLLEvent^ newNode;
+	// create new node
+	try
+	{	
+		// MouseLLEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^ prevEvent, MouseLLEvent^ nextEvent, int newEventID);
+		newNode = gcnew MouseLLEvent(dNewTime, bNewFed, iNewArm, prevNode, nextNode, new_EventID);
+	}
+	catch (System::OutOfMemoryException ^e)
+	{
+		QuickMsgBox::MBox("New MouseLL (MouseLL::AddEventAt) OutOfMemoryException: {0}", e);
+		return false;
+	}
+	new_EventID++;
+	// ------- check for null pointers
+	// added before current first event?
+	if(prevNode == nullptr) 
+	{
+		// added before first node
+		firstEvent = newNode;	// new node is now the new first event
+	}else
+	{
+		// event before, so fix that
+		prevNode->setNextEvent(newNode);
+	}
+
+	// added after current last event?
+	if(nextNode == nullptr)
+	{
+		// added before first nore
+		lastEvent = newNode;	// new node is now the new last event
+	}else
+	{
+		// event after, so fix that
+		nextNode->setPrevEvent(newNode);
+	}
+
+	// increase count
+	Count++;
+
+	// set tracking
+	ev_currentEvent = newNode;
+	ev_nextEvent = newNode->getNextEvent();
+	ev_prevEvent = addAtNode;	// not sure this is being used
+
+	te_currentTime = dNewTime;
+	if(ev_nextEvent != nullptr)
+		te_nextTime = ev_nextEvent->getTimestamp();
+
+	pl_currentTime = dNewTime;
+
+// after add
+QuickMsgBox::QTrace("\n--- AFTER ADD\n"); 
+if(prevNode!=nullptr)
+	QuickMsgBox::QTrace("Previous= {0}", prevNode->ToString()); 
+else
+	QuickMsgBox::QTrace("Previous= nullptr"); 
+
+QuickMsgBox::QTrace("*New= {0}", newNode->ToString()); 
+
+if(nextNode!=nullptr)
+	QuickMsgBox::QTrace("Next= {0}", nextNode->ToString()); 
+else
+	QuickMsgBox::QTrace("Next= nullptr"); 
+
+if(ev_currentEvent!=nullptr)
+	QuickMsgBox::QTrace("ev_currentEvent= {0}", ev_currentEvent->ToString()); 
+else
+	QuickMsgBox::QTrace("ev_currentEvent= nullptr"); 
+
+if(ev_nextEvent!=nullptr)
+	QuickMsgBox::QTrace("ev_nextEvent= {0}", ev_nextEvent->ToString()); 
+else
+	QuickMsgBox::QTrace("ev_nextEvent= nullptr"); 
+
+QuickMsgBox::QTrace("\n-------\n"); 
+
+	return true;
+
+}
+// remove the specific node
+bool MouseLL::RemoveEventAt(MouseLLEvent^ removeNode)
+{
+	return true;
+}
+
 #pragma endregion
 
 System::Void MouseLL::DEBUG_TRACKING(void)

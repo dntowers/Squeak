@@ -21,6 +21,8 @@
 		static void QTrace(System::String^ msg, Object^ obj1);
 		// quick trace
 		static void QTrace(System::String^ msg, Object^ obj1, Object^ obj2);
+		// quick trace
+		static void QTrace(System::String^ msg, Object^ obj1, Object^ obj2, Object^ obj3);
 
 		// trace of event contents
 		static void QEvent(System::String^ e_name, Object^ obj1);

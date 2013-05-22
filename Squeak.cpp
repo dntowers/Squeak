@@ -190,18 +190,37 @@ namespace Squeak
 
 	    switch (e->KeyCode)
         {
-           case Keys::Enter:		// trap enter
+			case Keys::Enter:		// trap enter
 				bKeyHandled = true;
 				break;
-		   case Keys::NumPad0:
+			case Keys::NumPad0:
 				TogglePlayState();	// toggle WMP play state
 				bKeyHandled = true;
 				break;
-		   case Keys::Divide:		// toggle event recording
+			case Keys::Divide:		// toggle event recording
 				ToggleRecording();
 				bKeyHandled = true;
 				break;
-           default:
+			case Keys::Multiply:
+				if(e->Shift)
+				{
+					bool bClearOK = false;
+					// pressed Shift-Multiply to clear all buttons
+					if(mouseLL == nullptr)
+					{
+						bClearOK = true;
+					}else
+					{
+						if(mouseLL->get_Count() == 0)
+							bClearOK = true;
+					}
+					if(bClearOK)
+						_StateSetButtonStateNone();
+					else
+						QuickMsgBox::MBox("Cannot switch to no event state when events exist - try removing events");
+				}
+				break;
+			default:
 				// check if number pad
 				if ( e->KeyCode >= Keys::NumPad1 && e->KeyCode <= Keys::NumPad9 )
 				{
@@ -236,6 +255,7 @@ namespace Squeak
 	// update the first, last event times on form based on sequence
 	System::Void Form1::UpdateFormEventTimes(void)
 	{
+		bool bHaveEvents = false;
 		// check if there is a sequence
 		if(mouseLL != nullptr)
 		{
@@ -248,10 +268,15 @@ namespace Squeak
 					// update text boxes in MM:SS:ss format
 					eventFirstTextBox->Text = MovieTimeToString(mov_firstTime);
 					eventLastTextBox->Text = MovieTimeToString(mov_lastTime);
+					bHaveEvents = true;
 				}
 			}
 		}
-
+		if(!bHaveEvents) // clear the boxes
+		{
+			eventFirstTextBox->Text = "";
+			eventLastTextBox->Text = "";
+		}
 	}
 #pragma endregion
 
@@ -305,10 +330,10 @@ namespace Squeak
 					{
 						// there is an event - ADD HERE instead of constructor, so event tracking not updated by addEvent in constructor, then AGAIN
 						//		by setup_loadRecordStart
-						QuickMsgBox::QTrace("sending addEvent: record on with event\n");	// QQQQQQQ
+						//QuickMsgBox::QTrace("sending addEvent: record on with event\n");	// QQQQQQQ
 						mouseLL->addEvent(dTime, btnArray[iCurrentKey]->bFeeding, iCurrentKey, true); // true = start from record
 
-						QuickMsgBox::QTrace("sending setup_loadRecordStart: record on with event\n");	// QQQQQQQ
+						//QuickMsgBox::QTrace("sending setup_loadRecordStart: record on with event\n");	// QQQQQQQ
 						mouseLL->setup_loadRecordStart();
 					}
 					else
@@ -334,6 +359,8 @@ namespace Squeak
 					if(bAddedOK && (iCurrentKey > 0))
 					{
 						UpdateFormEventTimes(); // update form times, this event is the first and last
+						UpdateGridData();
+
 						// add the new single event
 						#ifdef STATE_CHANGE
 								// add load sequence state change
@@ -355,6 +382,10 @@ namespace Squeak
 					}
 					// set up for new events
 					mouseLL->setup_loadNew();
+
+					UpdateFormEventTimes(); // update form times, this event is the first and last
+					UpdateGridData();
+
 					// IMPLEMENT NEW STATE CHANCE STACK ???
 					#ifdef STATE_CHANGE
 						try
@@ -626,7 +657,7 @@ namespace Squeak
 		}
 	}
 }
-// Form Events
+// Time Event
 namespace Squeak
 {
 	// called when timer ticks
@@ -792,7 +823,7 @@ namespace Squeak
 			{
 					
 				// add new event - ADD BOOLEANS BEFORE UPDATE
-				QuickMsgBox::QTrace("sending addEvent: keystroke\n");
+				//QuickMsgBox::QTrace("sending addEvent: keystroke\n");
 				mouseLL->addEvent(WMP_GetPosition(), btnArray[iCurrentKey]->bFeeding, iCurrentKey, false); // false = not added with start of new sequence, recording, event
 
 				// update form controls
@@ -845,6 +876,7 @@ namespace Squeak {
 	// main update
 	System::Void Form1::UpdateGridData(void)
 	{
+		dataGridViewEvents->Rows->Clear();
 		if(mouseLL != nullptr)
 		{
 			int event_count = mouseLL->get_Count();
@@ -852,7 +884,9 @@ namespace Squeak {
 			{
 				// there are events
 				// dataGridViewEvents
-				dataGridViewEvents->Rows->Clear();
+
+				// SHOULD ALWAYS CLEAR, e.g. in case of new sequence?
+				//dataGridViewEvents->Rows->Clear();
 
 	
 				// ----- fill out list
@@ -952,25 +986,71 @@ namespace Squeak {
 
 #pragma endregion
 
-#pragma region data grid events
+#pragma region data grid event - add or remove
 		System::Void Form1::_Grid_AddRemoveEvents(int iType)
 		{
 			// iType = -1 for add before, 0 for remove , 1 for add after
 			// check if there is a selection!!!
+			// QuickMsgBox::QTrace("Selected Rows = {0}", dataGridViewEvents->SelectedRows->Count);
 
+			bool bOK = false;
+
+			// check for selection
+			DataGridViewRow^ dataGridViewRow = dataGridViewEvents->CurrentRow;
+			if(dataGridViewRow == nullptr)
+			{
+				QuickMsgBox::MBox("Event must be selected on the data grid");
+			}
+			//if(dataGridViewEvents->SelectedRows->Count != 0)
+			//{
+			//	QuickMsgBox::MBox("Event must be selected on the data grid");
+			//}
 			// get row
+			int iRow = dataGridViewRow->Index;
 
 			// do add or remove
-
+			if(iType == 0)
+			{
+				bOK = _Grid_RemoveEvent(iRow+1); // send non-zero index of row
+			}else
+			{
+				// need to check if there is a state
+				bOK = _Grid_AddEvent(iRow + 1, iType);
+				//AddEventAt(MouseLLEvent^ addAtNode, double dNewTime, int iNewArm, bool bNewFed, int iDirection);
+			}
 			// if either returns true, update:
-			// UpdateGridData();
-			// UpdateFormEventTimes();
-
+			if(bOK)
+			{
+				UpdateGridData();
+				UpdateFormEventTimes();
+				mouseLL->set_IsDirty();
+			}
 		}
 		// remove event at selection
-		bool Form1::_Grid_RemoveEvent(int iRow_NZ);
+		bool Form1::_Grid_RemoveEvent(int iRow_NZ)
+		{
+			return true;
+		}
+		
 		// add before or after selection
-		bool Form1::_Grid_AddEvent(int iRow_NZ, iType);
+		bool Form1::_Grid_AddEvent(int iRow_NZ, int iType)
+		{
+			// check there is a state!!
+			if(iCurrentKey < 1)
+			{
+				QuickMsgBox::MBox("Need current event state to add another event (check whether an arm indicator is on)");
+				return false;
+			}
+QuickMsgBox::QTrace("Getting event from row {0}", iRow_NZ);
+			// get the current node
+			MouseLLEvent^ current_node = grid_row_to_event[iRow_NZ]; // get event, zero index row
+
+			// add the event
+			return mouseLL->AddEventAt(current_node, WMP_GetPosition(), iCurrentKey, btnArray[iCurrentKey]->bFeeding, iType);
+		}
+#pragma endregion
+
+#pragma region data grid event - change existing data
 
 		// update cell on click
 		System::Void Form1::update_cell_on_click(int cell_row, int cell_col)
@@ -994,8 +1074,8 @@ namespace Squeak {
 					{
 					case	0:	// time
 						{
-							QuickMsgBox::QTrace("Clicked on row {0} (not zero index):", cell_row+1);
-							QuickMsgBox::QEvent("row_event:", row_event);
+							//QuickMsgBox::QTrace("Clicked on row {0} (not zero index):", cell_row+1);
+							//QuickMsgBox::QEvent("row_event:", row_event);
 							double_click_DataGrid_Time(cell_row, row_event); 
 							break;
 						}
@@ -1040,6 +1120,7 @@ namespace Squeak {
 				str_msg = MovieTimeToString(row_event->getTimestamp()); // convert new time to movie time
 				dataGridViewEvents->Rows[cell_row]->Cells[0]->Value = str_msg;
 				UpdateFormEventTimes();
+				mouseLL->set_IsDirty();
 				return true;	
 			}else
 			{
@@ -1058,6 +1139,7 @@ namespace Squeak {
 				// get event arm, update grid
 				System::String^ str_arm = System::String::Format("{0}",row_event->getArm());
 				dataGridViewEvents->Rows[cell_row]->Cells[1]->Value = str_arm;
+				mouseLL->set_IsDirty();
 			}
 			return true;
 		}
@@ -1074,10 +1156,13 @@ namespace Squeak {
 				// update grid
 				System::String^ str_fed = System::String::Format("{0}",row_event->getFed());
 				dataGridViewEvents->Rows[cell_row]->Cells[2]->Value = str_fed;
+				mouseLL->set_IsDirty();
 			}
 			return true;
 		}
+#pragma endregion
 
+#pragma region data grid - click row
 		// clicked right button on row header - go to event
 		System::Void Form1::RowClicked_Right(int zeroRowIndex)
 		{

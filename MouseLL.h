@@ -231,6 +231,8 @@ private:
 		bool Save_Sequence(void);
 		// check save state
 		bool get_IsDirty(void){return IsDirty;}
+		// mark as dirty
+		void set_IsDirty(void){IsDirty = true;}
 #pragma endregion
 
 #pragma region file IO load
@@ -254,15 +256,16 @@ private:
 		bool _Load_CreateLL(array<double>^ dTimestampArray, array<int>^ iArmArray, array<bool>^ bFedArray);
 #pragma endregion
 
-// -------- Data Grid
-	public:
-		// populate grid using text
-		//int PopulateDataGrid(System::Windows::Forms::DataGridView^ dataGridEvents); 
-		// populate using vector
+#pragma region add and remove events
+public:
+	// add a node, either before or after the specified node, -1 is before, +1 is after
+	bool AddEventAt(MouseLLEvent^ addAtNode, double dNewTime, int iNewArm, bool bNeweFed, int iDirection);
+	// remove the specific node
+	bool RemoveEventAt(MouseLLEvent^ removeNode);
 
-		//int PopulateGridVector(List<MouseLLEvent^>^ grid_row_vector);
-		// List<GridRowData^>^  current_grid_data;
+#pragma endregion
 
+#pragma region search list
 // ----- Find
 public:
 		// find node by index
@@ -270,6 +273,8 @@ public:
 private:
 	// searches for the node with a time the same or after the event, prior to next event
 	bool _search_NoPreviousNode(double te_testTime, MouseLLEvent^% ev_test_current_event, MouseLLEvent^% ev_test_next_event);
+
+#pragma endregion
 
 // --- testing
 private:
