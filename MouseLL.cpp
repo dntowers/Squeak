@@ -1158,6 +1158,74 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 
 #pragma region event changes in player
 	// ----- change events ------
+	// called without a timer event
+	MouseLLEvent^ MouseLL::playEvent_NoTimer(double tm_new_player, bool* p_bNoState)
+	{
+		QuickMsgBox::QTrace("\n\n--------------------------------------playEvent_NoTimer: time {0}\n",tm_new_player);
+		QuickMsgBox::QEvent("ev_currentEvent", ev_currentEvent);
+		QuickMsgBox::QEvent("ev_nextEvent", ev_nextEvent);
+		QuickMsgBox::QEvent("firstEvent", firstEvent);
+		QuickMsgBox::QEvent("lastEvent", lastEvent);
+
+
+		// currently this is the same code as MouseLL::playEvent_All
+		MouseLLEvent^ new_me;
+		MouseLLEvent^ new_next_me;		// don't care about this so much
+
+		if(!_search_NoPreviousNode(tm_new_player, new_me, new_next_me))
+		{
+			// something went wrong with the search
+			System::Windows::Forms::MessageBox::Show(System::String::Format("Error in finding event node at time {0} (playEvent_All)", tm_new_player));
+			return nullptr;
+		}
+
+
+		// --- new event
+		QuickMsgBox::QTrace("\n---AFTER: _search_NoPreviousNode --");
+
+		QuickMsgBox::QEvent("new_me", new_me);
+		QuickMsgBox::QEvent("new_next_me", new_next_me);
+		QuickMsgBox::QEvent("ev_currentEvent", ev_currentEvent);
+		QuickMsgBox::QEvent("ev_nextEvent", ev_nextEvent);
+		QuickMsgBox::QEvent("firstEvent", firstEvent);
+		QuickMsgBox::QEvent("lastEvent", lastEvent);
+
+
+		// by default, assume state
+		*p_bNoState = false;
+		if(new_me == ev_currentEvent)
+		{
+			return nullptr;
+		}
+		if(new_me == nullptr)
+			*p_bNoState = true; // not in any state
+
+		else
+		{
+			if(new_me == nullptr)
+			{
+				// not in state
+				*p_bNoState = true;
+				// HACK - FIX o
+
+				return nullptr;
+			}
+		}
+
+
+		// update event being sent
+		_update_playEvent_All(new_me, new_next_me, tm_new_player);
+		
+		QuickMsgBox::QTrace("\n-- AFTER: _update_playEvent_All --");
+		QuickMsgBox::QEvent("ev_currentEvent", ev_currentEvent);
+		QuickMsgBox::QEvent("ev_nextEvent", ev_nextEvent);
+		QuickMsgBox::QEvent("firstEvent", firstEvent);
+		QuickMsgBox::QEvent("lastEvent", lastEvent);
+
+
+		// return new event - may be nullptr if before events
+		return new_me;
+	}
 
 	// -------- this will return for ALL player position types
 	// -------- slow?
@@ -1185,15 +1253,18 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		if(new_me == ev_currentEvent)
 		{
 			return nullptr;
-		}else
-		{
-			if(new_me == nullptr)
-			{
-				// not in state
-				*p_bNoState = true;
-				return nullptr;
-			}
 		}
+		if(new_me == nullptr)
+			*p_bNoState = true; // not in any state
+		//else
+		//{
+		//	if(new_me == nullptr)
+		//	{
+		//		// not in state
+		//		*p_bNoState = true;
+		//		return nullptr;
+		//	}
+		//}
 
 		// --- new event
 

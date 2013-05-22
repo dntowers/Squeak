@@ -1,4 +1,12 @@
 #pragma once
+
+//#ifndef D_STRING
+//#define D_STRING(var_event) System::Diagnostics::Trace::WriteLine("#var_event")
+//#endif
+//#ifndef D_EVENTSTRING
+//#define D_EVENTSTRING(var_event)  var_event != nullptr ? System::Diagnostics::Trace::WriteLine(System::String::Format("Event #var_event:\n\t{0}",  var_event->ToString())) : System::Diagnostics::Trace::WriteLine(System::String::Format("Event #var_event: null"))
+//#endif
+
 #include "QuickMsgBox.h"
 
 ref class GridRowData;
@@ -15,7 +23,7 @@ public:
 // -- override
      virtual System::String^ ToString() override 
      {
-		  return System::String::Format("{0},{1},{2}\n", dTimestamp, iArm, bFed);
+		  return System::String::Format("{0},{1},{2}", dTimestamp, iArm, bFed);
      }
 
 private:
@@ -191,12 +199,15 @@ public:
 	// send new event based on normal playing and timer, will not send if not passed next event
 	// this should be SLOW - looks through entire list each time
 	MouseLLEvent^ playEvent_All(double tm_new_player, bool* p_bNoState);
+	// called with time update not based on timer
+	MouseLLEvent^ playEvent_NoTimer(double tm_new_player, bool* p_bNoState);
 	
 	// send new event based on normal playing and timer, will not send if not passed next event
 	MouseLLEvent^ playEvent_Timer(double tm_new_player, bool* p_bNoState);
 
 	// update tracking state for playing event change
 	bool _update_playEvent_All(MouseLLEvent^ event_sent, MouseLLEvent^ event_sent_next, double tm_new_player);
+
 
 private:
 	// create events

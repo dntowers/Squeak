@@ -22,5 +22,6 @@
 		// quick trace
 		static void QTrace(System::String^ msg, Object^ obj1, Object^ obj2);
 
-
+		// trace of event contents
+		static void QEvent(System::String^ e_name, Object^ obj1);
 	};

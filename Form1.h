@@ -2,7 +2,17 @@
 
 #define AUTOSEQ "C:\\Users\\David\\Desktop\\Test.csv"
 #define AUTOMOV "C:\\Users\\David\\Desktop\\CH1 1.wmv"
+//#ifndef D_EVENTSTRING
+//#define D_EVENTSTRING(var_event)  var_event != nullptr ? System::Diagnostics::Trace::WriteLine(System::String::Format("Event {0}\n\t{1}",#var_event,  var_event->ToString())) : System::Diagnostics::Trace::WriteLine(System::String::Format("Event {0}: null", #var_event))
+//#endif
 
+
+template <class T>
+T PrintEvent (T a, T b) {
+  T result;
+  result = (a>b)? a : b;
+  return (result);
+}
 
 namespace Squeak {
 
@@ -30,6 +40,9 @@ namespace Squeak {
 			//
 			// --------------------  Media player settings
 			// rate
+
+#pragma region initialize variables		
+
 			dWMP_Rate = WMP_GetRate();
 			rateUpDown->Value = Decimal(dWMP_Rate);
 			axWindowsMediaPlayer1->settings->autoStart = false; // prevent automatically starting on load
@@ -76,8 +89,11 @@ namespace Squeak {
 			stateLL = nullptr;
 
 			// holds data from grid row
-			grid_row_event_vector = nullptr;
+			grid_row_event_vector = nullptr;	// list of events, index is grid row
+			grid_event_to_row = nullptr;		// dictionary linking events to rows				
+			grid_row_to_event = nullptr;		// dictionary linking rows to events
 
+#pragma endregion
 
 #pragma region button array
 			// -- active state array
@@ -182,6 +198,8 @@ namespace Squeak {
 		Color colorDisabledDataGridSelectionBack;
 
 		List<MouseLLEvent^>^ grid_row_event_vector;
+		Dictionary<MouseLLEvent^,int>^ grid_event_to_row;
+		Dictionary<int,MouseLLEvent^>^ grid_row_to_event;
 		//GridRowData^ grid_row_data;
 
 		//LinkedList<MouseEvent^>^ mouseEvents;
@@ -232,6 +250,7 @@ namespace Squeak {
 	private: System::Windows::Forms::Button^  btnStepBack;
 	private: System::Windows::Forms::CheckBox^  cb_lockButtons;
 	private: System::Windows::Forms::Button^  btn5;
+private: System::Windows::Forms::Button^  btnReloadGrid;
 
 
 
@@ -240,6 +259,7 @@ namespace Squeak {
 
 
 
+#pragma region Windows Form Designer generated code
 
 	private: System::ComponentModel::IContainer^  components;
 
@@ -252,7 +272,7 @@ namespace Squeak {
 		/// </summary>
 
 
-#pragma region Windows Form Designer generated code
+
 		/// <summary>
 		/// Required method for Designer support - do not modify
 		/// the contents of this method with the code editor.
@@ -301,6 +321,7 @@ namespace Squeak {
 			this->btnStepBack = (gcnew System::Windows::Forms::Button());
 			this->cb_lockButtons = (gcnew System::Windows::Forms::CheckBox());
 			this->btn5 = (gcnew System::Windows::Forms::Button());
+			this->btnReloadGrid = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->axWindowsMediaPlayer1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->eventLog1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->rateUpDown))->BeginInit();
@@ -367,9 +388,11 @@ namespace Squeak {
 			// 
 			// tbStateChange
 			// 
-			this->tbStateChange->Location = System::Drawing::Point(17, 663);
+			this->tbStateChange->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.75F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(0)));
+			this->tbStateChange->Location = System::Drawing::Point(41, 651);
 			this->tbStateChange->Name = L"tbStateChange";
-			this->tbStateChange->Size = System::Drawing::Size(106, 20);
+			this->tbStateChange->Size = System::Drawing::Size(268, 22);
 			this->tbStateChange->TabIndex = 5;
 			// 
 			// btn9
@@ -707,6 +730,9 @@ namespace Squeak {
 			this->dataGridViewEvents->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
 			this->dataGridViewEvents->Size = System::Drawing::Size(245, 539);
 			this->dataGridViewEvents->TabIndex = 30;
+			this->dataGridViewEvents->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &Form1::dataGridViewEvents_CellContentClick);
+			this->dataGridViewEvents->CellContentDoubleClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &Form1::dataGridViewEvents_CellContentDoubleClick);
+			this->dataGridViewEvents->CellMouseClick += gcnew System::Windows::Forms::DataGridViewCellMouseEventHandler(this, &Form1::dataGridViewEvents_CellMouseClick);
 			this->dataGridViewEvents->RowHeaderMouseClick += gcnew System::Windows::Forms::DataGridViewCellMouseEventHandler(this, &Form1::dataGridViewEvents_RowHeaderMouseClick);
 			this->dataGridViewEvents->RowHeaderMouseDoubleClick += gcnew System::Windows::Forms::DataGridViewCellMouseEventHandler(this, &Form1::dataGridViewEvents_RowHeaderMouseDoubleClick);
 			// 
@@ -735,7 +761,7 @@ namespace Squeak {
 			// 
 			this->btnStepForward->BackgroundImage = (cli::safe_cast<System::Drawing::Image^  >(resources->GetObject(L"btnStepForward.BackgroundImage")));
 			this->btnStepForward->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Center;
-			this->btnStepForward->Location = System::Drawing::Point(369, 644);
+			this->btnStepForward->Location = System::Drawing::Point(402, 646);
 			this->btnStepForward->Name = L"btnStepForward";
 			this->btnStepForward->Size = System::Drawing::Size(32, 32);
 			this->btnStepForward->TabIndex = 31;
@@ -746,7 +772,7 @@ namespace Squeak {
 			// 
 			this->btnStepBack->BackgroundImage = (cli::safe_cast<System::Drawing::Image^  >(resources->GetObject(L"btnStepBack.BackgroundImage")));
 			this->btnStepBack->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Center;
-			this->btnStepBack->Location = System::Drawing::Point(331, 644);
+			this->btnStepBack->Location = System::Drawing::Point(364, 646);
 			this->btnStepBack->Name = L"btnStepBack";
 			this->btnStepBack->Size = System::Drawing::Size(32, 32);
 			this->btnStepBack->TabIndex = 32;
@@ -780,11 +806,21 @@ namespace Squeak {
 			this->btn5->UseVisualStyleBackColor = false;
 			this->btn5->Click += gcnew System::EventHandler(this, &Form1::btn5_Click);
 			// 
+			// btnReloadGrid
+			// 
+			this->btnReloadGrid->Location = System::Drawing::Point(954, 735);
+			this->btnReloadGrid->Name = L"btnReloadGrid";
+			this->btnReloadGrid->Size = System::Drawing::Size(23, 22);
+			this->btnReloadGrid->TabIndex = 35;
+			this->btnReloadGrid->UseVisualStyleBackColor = true;
+			this->btnReloadGrid->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &Form1::btnReloadGrid_MouseClick);
+			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1024, 762);
+			this->Controls->Add(this->btnReloadGrid);
 			this->Controls->Add(this->btn5);
 			this->Controls->Add(this->cb_lockButtons);
 			this->Controls->Add(this->btnStepBack);
@@ -854,7 +890,17 @@ namespace Squeak {
 		void Play_Movie(void);
 		// set new time
 		void WMP_SetPosition(double dPositionSecs)
-			{axWindowsMediaPlayer1->Ctlcontrols->currentPosition = dPositionSecs;}
+		{
+			axWindowsMediaPlayer1->Ctlcontrols->currentPosition = dPositionSecs;
+			// update time string
+			//tbStateChange->Text = MovieTimeToString(dPositionSecs);
+			Update_Time_Box(dPositionSecs, L"WMP_SetPosition");
+
+			bool bNoState = true;
+			MouseLLEvent^ me_sent = mouseLL->playEvent_NoTimer(dPositionSecs, &bNoState);
+			_UpdateFrom_PlayEvent(me_sent, bNoState);
+
+		}
 #pragma endregion
 
 #pragma region WMP state
@@ -900,6 +946,15 @@ namespace Squeak {
 					//CAxWindow                   m_wndView;
 					///CComPtr<IWMPPlayer>         m_spWMPPlayer;
 					//IWMPControls2 Ctlcontrols2 = (IWMPControls2)axWindowsMediaPlayer1->Ctlcontrols;
+					
+					bool bNoState = true; 
+					double newPos = WMP_GetPosition();
+					
+					//tbStateChange->Text = MovieTimeToString(newPos);
+					Update_Time_Box(newPos, L"Player Pos Change");
+					MouseLLEvent^ me_sent = mouseLL->playEvent_All(newPos, &bNoState);
+					_UpdateFrom_PlayEvent(me_sent, bNoState);
+
 				}
 			}
 			// check if media player has video
@@ -994,6 +1049,21 @@ private:
 		// double click row
 		System::Void dataGridViewEvents_RowHeaderMouseDoubleClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellMouseEventArgs^  e) {
 		}
+		// double click cell
+		private: System::Void dataGridViewEvents_CellContentDoubleClick(System::Object^  sender, 
+												                       System::Windows::Forms::DataGridViewCellEventArgs^  e)
+				{
+					//QuickMsgBox::QTrace("Double click row {0}, column {1}\n",e->RowIndex, e->ColumnIndex);
+					cell_double_click_DataGrid(e->RowIndex, e->ColumnIndex);
+				}
+		 private: System::Void dataGridViewEvents_CellContentClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellEventArgs^  e) {
+				  }
+		private: System::Void dataGridViewEvents_CellMouseClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellMouseEventArgs^  e) {
+					if(e->Button == System::Windows::Forms::MouseButtons::Right)
+						cell_click_DataGrid_Right(e->RowIndex, e->ColumnIndex);
+				  }
+
+
 #pragma endregion
 
 #pragma region Form Events: other
@@ -1034,12 +1104,50 @@ private:
 		// step forward
 		System::Void btnStepForward_Click(System::Object^  sender, System::EventArgs^  e) {
 			if(!WMP_IsPlaying())
+			{
 				((WMPLib::IWMPControls2^)axWindowsMediaPlayer1->Ctlcontrols)->step(1);
+
+				QuickMsgBox::QTrace("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CLICK FORWARD\n");
+
+				_UpdateFromStep();
+
+				QuickMsgBox::QTrace("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ END (CLICK FORWARD)\n");
+			}
 		}
 		// step back
 		System::Void btnStepBack_Click(System::Object^  sender, System::EventArgs^  e) {
 			if(!WMP_IsPlaying())
+			{
 				((WMPLib::IWMPControls2^)axWindowsMediaPlayer1->Ctlcontrols)->step(-1);
+
+				QuickMsgBox::QTrace("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CLICK BACK\n");
+
+				_UpdateFromStep();
+
+				QuickMsgBox::QTrace("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ END (CLICK BACK)\n");
+
+			}
+		}
+		// update from step clicks
+		System::Void _UpdateFromStep(){
+				bool bNoState = true; 
+				double newPos = WMP_GetPosition();
+				//tbStateChange->Text = MovieTimeToString(newPos);
+				Update_Time_Box(newPos, L"_UpdateFromStep");
+
+				QuickMsgBox::QTrace("BEFORE playEvent_NoTimer:  Pos = {0}\n", newPos);
+				
+				MouseLLEvent^ me_sent = mouseLL->playEvent_NoTimer(newPos, &bNoState);
+
+				QuickMsgBox::QTrace("AFTER playEvent_NoTimer:  Pos = {0}", newPos);
+
+				_UpdateFrom_PlayEvent(me_sent, bNoState);
+		}
+		
+		// reload data grid
+		private: System::Void btnReloadGrid_MouseClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+			if(!bRecording)
+				UpdateGridData();
 		}
 
 #pragma endregion
@@ -1088,10 +1196,32 @@ private:
 #pragma region data grid methods
 		// enable/disable grid, enable only when not playing and/or recording
 		System::Void EnableGrid(bool bEnable);
+		
 		// update grid data
 		System::Void UpdateGridData(void);
+		
+		// update selected row on grid based on new event
+		System::Void UpdateGridData_SelectionFromEvent(MouseLLEvent^ new_event);
+
+		// double clicked time cell
+		bool double_click_DataGrid_Time(int cell_row, MouseLLEvent^ row_event);
+		// double clicked arm cell
+		bool double_click_DataGrid_Arm(int cell_row, MouseLLEvent^ row_event);
+		// double clicked feed cell
+		bool double_click_DataGrid_Feed(int cell_row, MouseLLEvent^ row_event);
+
+		// fill row text
+		System::Void Form1::UpdateGridData_FillRow(array<System::String^>^ row_string_array, 
+					    					       double row_timestamp, int row_arm, bool row_fed);
+
 #pragma endregion
+
 #pragma region data grid events
+		System::Void update_cell_on_click(int cell_row, int cell_col);
+		// single cell click
+		System::Void cell_click_DataGrid_Right(int cell_row, int cell_col);
+		// double cell click
+		System::Void cell_double_click_DataGrid(int cell_row, int cell_col);
 		// clicked right button on row header
 		System::Void RowClicked_Right(int zeroRowIndex);
 		// clicked left button on row header
@@ -1108,8 +1238,8 @@ private:
 	System::Void _StateSetButtonStateNone(void);
 	// sets visible button state (bControl == feeding)
 	System::Void _SetButtonState(int iArm, bool bFeeding, bool bRecording);
-	// use to ket gey codes from button down
-	// int _GetButtonStateFromKeyboard(System::Windows::Forms::KeyEventArgs^  e);
+	// called after MouseLL PlayEvent check
+	System::Void _UpdateFrom_PlayEvent(MouseLLEvent^ m_event, bool bNoState);
 #pragma endregion
 
 #pragma region recording events
@@ -1132,7 +1262,8 @@ private:
 	System::String^ TextInputBox(System::String^ strPrompt, System::String^ strCaption, System::String^ strDefault);
 	// convert movie time in double to MM:SS:ss format
 	System::String^ MovieTimeToString(double dMovieTime);
-
+	// updat text box with time, caller
+	System::Void Update_Time_Box(double dMovieTime, System::String^ strCaller);
 	// load file dialog
 	System::String^ _LoadSeqDialog(void);
 	

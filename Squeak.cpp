@@ -146,12 +146,11 @@ namespace Squeak
 	}
 	// clicked outside movie player
 	System::Void Form1::Form_Mouse_Pressed(System::Windows::Forms::MouseEventArgs^  e){
-		System::String^ strStatus;
-		
+		//System::String^ strStatus;
 		if(e->Button == ::MouseButtons::Left)
 		{
-			strStatus = String::Format("FORM: Mouse Down at [{0},{1}]", e->X, e->Y);
-			tbStateChange->Text = strStatus;
+			//strStatus = String::Format("FORM: Mouse Down at [{0},{1}]", e->X, e->Y);
+			//tbStateChange->Text = strStatus;
 			Point formPos = Point(e->X, e->Y);
 			MoveDirectionButton(formPos);
 		}
@@ -161,12 +160,12 @@ namespace Squeak
 		// make sure a button is available
 		if(btnSelected == nullptr)
 		{
-			tbStateChange->Text = L"Tried to move button with null pointer";
+			//tbStateChange->Text = L"Tried to move button with null pointer";
 		}else
 		{
-			System::String^ strStatus;
-			strStatus = String::Format("New Location [{0},{1}]", btnNewLocation.X, btnNewLocation.Y);
-			tbStateChange->Text = strStatus;
+			//System::String^ strStatus;
+			//strStatus = String::Format("New Location [{0},{1}]", btnNewLocation.X, btnNewLocation.Y);
+			//tbStateChange->Text = strStatus;
 			btnSelected->Location = btnNewLocation;
 		}
 	}
@@ -644,7 +643,8 @@ namespace Squeak
 			// -----------------------------------change in position of WMP
 			// update time string
 			dWmpPosition = dNewWMPPosition;
-			tbStateChange->Text = MovieTimeToString(dWmpPosition);
+			if(WMP_IsPlaying()) //tbStateChange->Text = MovieTimeToString(dWmpPosition);
+				Update_Time_Box(dWmpPosition, "Form1::TimerTick");
 
 			// --- update events
 			if(!bRecording)
@@ -652,19 +652,26 @@ namespace Squeak
 				if(mouseLL != nullptr)
 				{
 					bool bNoState = true;
-					MouseLLEvent^ me_sent = mouseLL->playEvent_All(dWmpPosition, &bNoState);
-					if(me_sent != nullptr)
+					// call only when player is running
+					if(WMP_IsPlaying())
 					{
-						// new event
-						_StateSetButtonState(me_sent->getArm(), me_sent->getFed());
-					}else
-					{
-						// sent null pointer, either not new state or not state at all
-						if(bNoState)
-						{
-							// no current state!
-							_StateSetButtonStateNone();
-						}
+						MouseLLEvent^ me_sent = mouseLL->playEvent_All(dWmpPosition, &bNoState);
+						_UpdateFrom_PlayEvent(me_sent, bNoState);
+						//if(me_sent != nullptr)
+						//{
+						//	// new event - update buttons
+						//	_StateSetButtonState(me_sent->getArm(), me_sent->getFed());
+						//	// update grdi selection
+						//	UpdateGridData_SelectionFromEvent(me_sent);
+						//}else
+						//{
+						//	// sent null pointer, either not new state or not state at all
+						//	if(bNoState)
+						//	{
+						//		// no current state!
+						//		_StateSetButtonStateNone();
+						//	}
+						//}
 					}
 				}
 			}
@@ -672,6 +679,26 @@ namespace Squeak
 
 	}
 
+}
+
+// called after checking event change state in MouseLL
+System::Void Form1::_UpdateFrom_PlayEvent(MouseLLEvent^ m_event, bool bNoState)
+{
+	if(m_event != nullptr)
+	{
+		// new event - update buttons
+		_StateSetButtonState(m_event->getArm(), m_event->getFed());
+		// update grdi selection
+		UpdateGridData_SelectionFromEvent(m_event);
+	}else
+	{
+		// sent null pointer, either not new state or not state at all
+		if(bNoState)
+		{
+			// no current state!
+			_StateSetButtonStateNone();
+		}
+	}
 }
 
 // arm indicator change events
@@ -704,6 +731,7 @@ namespace Squeak
 	{
 		// set the button state, do not allow recording when passed state
 		_SetButtonState(iArm, bFeeding, false);
+
 
 	}
 	// currently in no state (e.g. no events, or before first)
@@ -812,6 +840,23 @@ namespace Squeak
 namespace Squeak {
 
 #pragma region data grid methods
+	// update row
+	System::Void Form1::UpdateGridData_FillRow(array<System::String^>^ row_string_array, 
+											   double row_timestamp, int row_arm, bool row_fed)
+	{
+		// -- fill out grid with test	
+		System::String^ str_movieTime;		// convert to mm::ss.ss
+
+		// format time
+		str_movieTime = MovieTimeToString(row_timestamp);
+		row_string_array[0] = str_movieTime;
+
+		// format arm and fed
+		row_string_array[1] = System::String::Format("{0}",row_arm);
+		row_string_array[2] = System::String::Format("{0}",row_fed);
+
+	}
+
 	// main update
 	System::Void Form1::UpdateGridData(void)
 	{
@@ -824,83 +869,73 @@ namespace Squeak {
 				// dataGridViewEvents
 				dataGridViewEvents->Rows->Clear();
 
-				//int iAdded = mouseLL->PopulateDataGrid(dataGridViewEvents); 
-
+	
 				// ----- fill out list
-				// create vector of mouse event
-				
-				//MouseLLEvent^ grid_row_event;
-
-				// make vector
 				MouseLLEvent^ grid_row_event;
-				//MouseLLEvent^ new_grid_row_event;
 
+				// create vector of mouse event
 				grid_row_event_vector = gcnew List<MouseLLEvent^>();
+				// create dictionaries
+				grid_row_to_event = gcnew Dictionary<int,MouseLLEvent^>(); // dictionary linking rows to events
+				grid_event_to_row = gcnew Dictionary<MouseLLEvent^,int>() ;// dictionary linking events to rows				
 
+				// add events by iterating through list of events	
 				int iCount = 0;
 				grid_row_event = mouseLL->getFirstEvent();
 				while(grid_row_event != nullptr)
 				{
 					grid_row_event_vector->Add(grid_row_event);
+					iCount++;	
+					// new event added, use count for dictionary
+					grid_row_to_event->Add(iCount, grid_row_event);
+					grid_event_to_row->Add(grid_row_event, iCount);
+
+					// get next event
 					grid_row_event = grid_row_event->getNextEvent();
-					iCount++;
 				}
 
-				//// fille with empty mouse events
-				//for(iIndex = 0; iIndex < event_count; iIndex++)
-				//{
-				//	grid_row_event_vector->Add(grid_row_event)
-				//	//try
-				//	//{
-				//	//	grid_row_event = gcnew MouseLLEvent();
-				//	//	grid_row_event_vector->Add(grid_row_event);
-				//	//}
-				//	//catch(TypeLoadException e)
-				//	//{
-				//	//	System::Windows::Forms::MessageBox::Show(String::Format("Exception at {0}: {1}", iIndex, e));
-				//	//}
-
-				//}
-				//MouseLLEvent^ new_grid_row_event;
-
-				//// get the first event
-				//new_grid_row_event = mouseLL->getFirstEvent();
-
-				//for each(grid_row_event in grid_row_event_vector)
-				//{
-				//	grid_row_event = new_grid_row_event; 
-				//	new_grid_row_event = mouseLL->getNextEvent(grid_row_event);
-				//}
-				//// fille with empty mouse events
-				//for(int iIndex = 0; iIndex < event_count; iIndex++)
-				//{
-				//	grid_row_event = gcnew MouseLLEvent();
-				//	grid_row_event_vector->Add(grid_row_event);
-				//}
-				//
-				//// fill vector of mouse events
-				//mouseLL->PopulateGridVector(grid_row_event_vector);
+	
 
 				// -- fill out grid with test	
-				System::String^ str_movieTime;		// convert to mm::ss.ss
+				// System::String^ str_movieTime;		// convert to mm::ss.ss
 				
 				// holds row string for data grid dataGridViewEvents
 				array<System::String^>^ rowData = gcnew array<System::String^>(3);
 
 				for each(grid_row_event in grid_row_event_vector)
 				{
-					// format time
-					str_movieTime = MovieTimeToString(grid_row_event->getTimestamp());
-					rowData[0] = str_movieTime;
+					UpdateGridData_FillRow(rowData, grid_row_event->getTimestamp(), grid_row_event->getArm(), 
+													grid_row_event->getFed());
 
-					// format arm and fed
-					rowData[1] = System::String::Format("{0}",grid_row_event->getArm());
-					rowData[2] = System::String::Format("{0}",grid_row_event->getFed());
+					//// format time
+					//str_movieTime = MovieTimeToString(grid_row_event->getTimestamp());
+					//rowData[0] = str_movieTime;
+
+					//// format arm and fed
+					//rowData[1] = System::String::Format("{0}",grid_row_event->getArm());
+					//rowData[2] = System::String::Format("{0}",grid_row_event->getFed());
 
 					// add data to row
 					dataGridViewEvents->Rows->Add(rowData);
 				}
 
+			}
+		}
+	}
+
+	// will update selected row when new event occurs
+	System::Void Form1::UpdateGridData_SelectionFromEvent(MouseLLEvent^ new_event)
+	{
+		// get row from dictionary
+		if(grid_event_to_row != nullptr)
+		{
+			if(new_event != nullptr)
+			{
+				// get row index from event to row dictionary
+				int rowIndex = grid_event_to_row[new_event];
+				
+				// update selected row
+				dataGridViewEvents->Rows[rowIndex-1]->Selected = true;
 			}
 		}
 	}
@@ -928,9 +963,86 @@ namespace Squeak {
 			dataGridViewEvents->DefaultCellStyle->SelectionBackColor = colorDisabledDataGridSelectionBack;
 		}
 	}
+
+
 #pragma endregion
 
 #pragma region data grid events
+		// update cell on click
+		System::Void Form1::update_cell_on_click(int cell_row, int cell_col)
+		{
+			// * cell_row, cell_col ZERO INDEXED
+			// get event			
+			MouseLLEvent^ row_event = grid_row_to_event[cell_row+1];
+
+			if(row_event == nullptr)
+			{
+				QuickMsgBox::QTrace("cell_double_click_DataGrid:mouse_event for row {0} is nullptr", cell_row+1);
+			}else
+			{
+
+				//Stringgrid_row_to_event value = "";
+
+				if (grid_row_to_event->TryGetValue(cell_row+1, row_event))
+				{
+					// call appropriate cell handler
+					switch(cell_col) 
+					{
+					case	0:	// time
+						{
+							double_click_DataGrid_Time(cell_row, row_event);					
+						}
+					case	1:	// arm
+						{
+							double_click_DataGrid_Arm(cell_row, row_event);					
+						}
+					case	2:	// fed
+						double_click_DataGrid_Feed(cell_row, row_event);					
+					default :
+						QuickMsgBox::QTrace("ERROR: hit default switch on double click cell column {0}, \n",cell_col);
+					}
+				}
+			}
+		}
+		// double clicked time cell
+		System::Void Form1::cell_click_DataGrid_Right(int cell_row, int cell_col)
+		{
+			update_cell_on_click(cell_row, cell_col);
+		}
+		// double clicked time cell
+		System::Void Form1::cell_double_click_DataGrid(int cell_row, int cell_col)
+		{
+		}	
+		// double clicked time cell
+		bool Form1::double_click_DataGrid_Time(int cell_row, MouseLLEvent^ row_event)
+		{
+			// cell row, column ZERO INDEXES
+			// UpdateGridData_FillRow(array<System::String^>^);
+
+			System::String^ time_string = dynamic_cast<String^>(dataGridViewEvents->Rows[cell_row]->Cells[0]->Value);
+			
+			QuickMsgBox::MBox("{0}, event value {1}", time_string, row_event->getTimestamp());
+			return true;
+		}
+		// double clicked arm cell
+		bool Form1::double_click_DataGrid_Arm(int cell_row, MouseLLEvent^ row_event)
+		{
+			if( iCurrentKey > 0 )
+			{
+				// set event arm
+				row_event->setArm(iCurrentKey);
+				// get event arm, update grid
+				System::String^ str_arm = System::String::Format("{0}",row_event->getArm());
+				dataGridViewEvents->Rows[cell_row]->Cells[1]->Value = str_arm;
+			}
+			return true;
+		}
+
+		// double clicked feed cell
+		bool Form1::double_click_DataGrid_Feed(int cell_row, MouseLLEvent^ row_event)
+		{
+			return true;
+		}
 
 		// clicked right button on row header - go to event
 		System::Void Form1::RowClicked_Right(int zeroRowIndex)
@@ -945,6 +1057,8 @@ namespace Squeak {
 				if(rowEvent != nullptr)
 				{
 					WMP_SetPosition(rowEvent->getTimestamp());
+					// iCurrentKey = rowEvent->getArm();
+					// bFeeding = rowEvent->getFed();
 				}
 			}
 
@@ -955,10 +1069,27 @@ namespace Squeak {
 // convert movie time in double to MM:SS:ss format
 System::String^ Squeak::Form1::MovieTimeToString(double dMovieTime)
 {
+	System::String^ strTime;
+
 	double dMinutes = floor(dMovieTime / 60);
 	double dSeconds = fmod(dMovieTime, 60);
 
-	return String::Format( "{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
+	strTime = String::Format( "{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
+		
+	QuickMsgBox::QTrace("\nMOVIE_TIME:  Seconds: {0}, String: [{1}]\n", dMovieTime, strTime); 
+	return strTime;
+}
+
+// update "status" textbok with time, caller
+System::Void Squeak::Form1::Update_Time_Box(double dMovieTime, System::String^ strCaller)
+{
+	System::String^  strTime = MovieTimeToString(dMovieTime);
+	if(String::IsNullOrEmpty(strCaller))
+		tbStateChange->Text = strTime;
+	else
+	{
+		tbStateChange->Text = String::Format("{0} [Caller='{1}']", strTime, strCaller);
+	}
 }
 
 

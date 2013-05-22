@@ -51,4 +51,16 @@ void QuickMsgBox::QTrace(System::String^ msg, Object^ obj1, Object^ obj2)
 	strFormat = System::String::Format(msg, obj1, obj2);
 	System::Diagnostics::Trace::WriteLine( strFormat );
 }
-	
+
+// trace event
+void QuickMsgBox::QEvent(System::String^ e_name, Object^ obj1)
+{
+	System::String^ strFormat;
+	if(obj1 == nullptr)
+		strFormat = System::String::Format("{0}:\t nullptr", e_name);
+	else
+		strFormat = System::String::Format("{0}:\t {1}", e_name, obj1->ToString());
+
+	System::Diagnostics::Trace::WriteLine(strFormat);
+}
+
