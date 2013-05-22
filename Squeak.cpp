@@ -657,21 +657,6 @@ namespace Squeak
 					{
 						MouseLLEvent^ me_sent = mouseLL->playEvent_All(dWmpPosition, &bNoState);
 						_UpdateFrom_PlayEvent(me_sent, bNoState);
-						//if(me_sent != nullptr)
-						//{
-						//	// new event - update buttons
-						//	_StateSetButtonState(me_sent->getArm(), me_sent->getFed());
-						//	// update grdi selection
-						//	UpdateGridData_SelectionFromEvent(me_sent);
-						//}else
-						//{
-						//	// sent null pointer, either not new state or not state at all
-						//	if(bNoState)
-						//	{
-						//		// no current state!
-						//		_StateSetButtonStateNone();
-						//	}
-						//}
 					}
 				}
 			}
@@ -968,6 +953,25 @@ namespace Squeak {
 #pragma endregion
 
 #pragma region data grid events
+		System::Void Form1::_Grid_AddRemoveEvents(int iType)
+		{
+			// iType = -1 for add before, 0 for remove , 1 for add after
+			// check if there is a selection!!!
+
+			// get row
+
+			// do add or remove
+
+			// if either returns true, update:
+			// UpdateGridData();
+			// UpdateFormEventTimes();
+
+		}
+		// remove event at selection
+		bool Form1::_Grid_RemoveEvent(int iRow_NZ);
+		// add before or after selection
+		bool Form1::_Grid_AddEvent(int iRow_NZ, iType);
+
 		// update cell on click
 		System::Void Form1::update_cell_on_click(int cell_row, int cell_col)
 		{
@@ -990,14 +994,19 @@ namespace Squeak {
 					{
 					case	0:	// time
 						{
-							double_click_DataGrid_Time(cell_row, row_event);					
+							QuickMsgBox::QTrace("Clicked on row {0} (not zero index):", cell_row+1);
+							QuickMsgBox::QEvent("row_event:", row_event);
+							double_click_DataGrid_Time(cell_row, row_event); 
+							break;
 						}
 					case	1:	// arm
 						{
-							double_click_DataGrid_Arm(cell_row, row_event);					
+							double_click_DataGrid_Arm(cell_row, row_event);	break;				
 						}
 					case	2:	// fed
-						double_click_DataGrid_Feed(cell_row, row_event);					
+						{
+							double_click_DataGrid_Feed(cell_row, row_event); break;					
+						}
 					default :
 						QuickMsgBox::QTrace("ERROR: hit default switch on double click cell column {0}, \n",cell_col);
 					}
@@ -1016,15 +1025,30 @@ namespace Squeak {
 		// double clicked time cell
 		bool Form1::double_click_DataGrid_Time(int cell_row, MouseLLEvent^ row_event)
 		{
-			// cell row, column ZERO INDEXES
-			// UpdateGridData_FillRow(array<System::String^>^);
+			// need to check if change is OK: not before or after current event (unless last), 
+			//		or at beginning of movie (time = 0)
+			// will return error message if invalid time
+			// will update the event time in row_event
+					
 
-			System::String^ time_string = dynamic_cast<String^>(dataGridViewEvents->Rows[cell_row]->Cells[0]->Value);
+			String^ str_msg = L"";
+			double new_time = WMP_GetPosition();
+			bool okChange = mouseLL->ChangeGridTimeChange(new_time, row_event, str_msg);
+			if(okChange)
+			{
+				// ok, change cell
+				str_msg = MovieTimeToString(row_event->getTimestamp()); // convert new time to movie time
+				dataGridViewEvents->Rows[cell_row]->Cells[0]->Value = str_msg;
+				UpdateFormEventTimes();
+				return true;	
+			}else
+			{
+				QuickMsgBox::MBox(str_msg);
+				return false;
+			}
 			
-			QuickMsgBox::MBox("{0}, event value {1}", time_string, row_event->getTimestamp());
-			return true;
 		}
-		// double clicked arm cell
+		// -- double clicked arm cell
 		bool Form1::double_click_DataGrid_Arm(int cell_row, MouseLLEvent^ row_event)
 		{
 			if( iCurrentKey > 0 )
@@ -1041,6 +1065,16 @@ namespace Squeak {
 		// double clicked feed cell
 		bool Form1::double_click_DataGrid_Feed(int cell_row, MouseLLEvent^ row_event)
 		{
+			if( iCurrentKey > 0 )
+			{
+				// get current state from keys
+				bool bNewFeeding = btnArray[iCurrentKey]->bFeeding;
+				// change event
+				row_event->setFed(bNewFeeding);
+				// update grid
+				System::String^ str_fed = System::String::Format("{0}",row_event->getFed());
+				dataGridViewEvents->Rows[cell_row]->Cells[2]->Value = str_fed;
+			}
 			return true;
 		}
 
@@ -1065,6 +1099,7 @@ namespace Squeak {
 		}
 #pragma endregion
 
+
 }
 // convert movie time in double to MM:SS:ss format
 System::String^ Squeak::Form1::MovieTimeToString(double dMovieTime)
@@ -1076,7 +1111,7 @@ System::String^ Squeak::Form1::MovieTimeToString(double dMovieTime)
 
 	strTime = String::Format( "{0}:{1}",dMinutes,dSeconds.ToString("00.00"));
 		
-	QuickMsgBox::QTrace("\nMOVIE_TIME:  Seconds: {0}, String: [{1}]\n", dMovieTime, strTime); 
+	//QuickMsgBox::QTrace("\nMOVIE_TIME:  Seconds: {0}, String: [{1}]\n", dMovieTime, strTime); 
 	return strTime;
 }
 

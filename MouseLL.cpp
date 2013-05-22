@@ -1329,6 +1329,81 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 
 
 #pragma region new event and setup tracking variable functions
+
+	// check whether event time change from grid is OK, if so set it, update other times
+	bool MouseLL::ChangeGridTimeChange(double dNewTime, MouseLLEvent^ current_event, System::String^ % str_msg)
+	{
+		// cannot move to zero
+		if(dNewTime == 0)
+		{
+			str_msg = "Cannot move new start time to beginning of movie";
+			return false;
+		}
+		// One event: OK
+		// Last:
+		//		no move before previous
+		// First:
+		//		no move to or past next
+		// Middle
+		//		no move to or past next
+		//		no move to or before previous
+		if((current_event != firstEvent) || (current_event != lastEvent)) // one event, already checked for time = zero
+		{
+
+			MouseLLEvent^ prevEvent = nullptr;
+			MouseLLEvent^ nextEvent = nullptr;
+
+			if(current_event != lastEvent)
+			{
+				nextEvent = current_event->getNextEvent();			// not the last event, so get pointer to next
+				if(current_event != firstEvent)
+				{
+					prevEvent = current_event->getPreviousEvent();   // not the first event, so get pointer to previous
+				}
+			}
+			// there is a previous event, make sure we are not moving before or to it
+			if(prevEvent != nullptr)
+			{
+				// there is a previous event, check we are not moving to or before it
+				if(dNewTime <= prevEvent->getTimestamp())
+				{
+					str_msg = "Cannot move new start time before or at the start of previous event";
+					return false;
+				}
+			}
+			// there is a next event, make sure we are not after or to it
+			if(nextEvent != nullptr)
+			{
+				if(dNewTime >= nextEvent->getTimestamp())
+				{
+					str_msg = "Cannot move new start time after or at the start of next event";
+					return false;
+				}
+			}
+		}
+		// this will be false if we moved back in time to previous event
+		if(dNewTime < current_event->getTimestamp())
+		{
+			ev_currentEvent = current_event; // the time we moved back to needs to be this event
+			// nothing else should change
+		}else
+		{
+			if(current_event != ev_currentEvent) // this should always be false
+			{	
+				// somehow the event sent is not the current event
+				str_msg = "ERROR: Moved event time forward, but event is not the same as ev_currentEvent!";
+				return false;  // cannot move
+			}
+		}
+		// should be good here
+		current_event->setTimestamp(dNewTime);
+		te_currentTime = dNewTime;				// should be it, next event did not change
+
+		return true;
+
+	}
+
+
 	// change tracking for new event
 	// iLocation: -1 for before firsEvent, 1 for after lastEvent, 0 for between events
 	// NOTE: new event may just be update of first or last event

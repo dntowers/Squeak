@@ -59,9 +59,10 @@ public:
 
 	int getEventID(void){return EventID;}
 	// -----------------------------------------------------set values
-	// event params
+	// set params
 	void setArm(int iNewArm){iArm = iNewArm;}
 	void setFed(bool bNewFed){bFed = bNewFed;}
+	void setTimestamp(double dNewTime){dTimestamp = dNewTime;}
 	// pointers
 	void setNextEvent(MouseLLEvent^ newNextEvent){nextEvent = newNextEvent;}
 	void setPrevEvent(MouseLLEvent^ newPrevEvent){prevEvent = newPrevEvent;}
@@ -194,6 +195,7 @@ public:
 	bool IsPreviousFirst(MouseLLEvent^% testEvent);
 	bool IsNextLast(MouseLLEvent^% testEvent);
 
+	bool ChangeGridTimeChange(double dNewTime, MouseLLEvent^ current_event, System::String^ % str_msg);
 
 	// ----- change events ------
 	// send new event based on normal playing and timer, will not send if not passed next event

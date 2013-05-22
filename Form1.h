@@ -1213,6 +1213,12 @@ private:
 		// fill row text
 		System::Void Form1::UpdateGridData_FillRow(array<System::String^>^ row_string_array, 
 					    					       double row_timestamp, int row_arm, bool row_fed);
+		// add or remove
+		System::Void _Grid_AddRemoveEvents(int iType);
+		// remove event at selection
+		bool _Grid_RemoveEvent(int iRow_NZ);
+		// add before or after selection
+		bool _Grid_AddEvent(int iRow_NZ, iType);
 
 #pragma endregion
 
