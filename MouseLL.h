@@ -270,6 +270,8 @@ public:
 public:
 		// find node by index
 		MouseLLEvent^ FindNodeByIndex(int iZeroIndex);
+		// find node by time
+		MouseLLEvent^ FindNodeByTime(double match_time);
 private:
 	// searches for the node with a time the same or after the event, prior to next event
 	bool _search_NoPreviousNode(double te_testTime, MouseLLEvent^% ev_test_current_event, MouseLLEvent^% ev_test_next_event);

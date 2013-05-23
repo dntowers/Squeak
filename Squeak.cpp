@@ -938,6 +938,10 @@ namespace Squeak {
 					dataGridViewEvents->Rows->Add(rowData);
 				}
 
+				// try to set correct row
+				MouseLLEvent^ me_find = mouseLL->FindNodeByTime(WMP_GetPosition());
+				// this wil check for a null pointer, otherwise set grid row
+				UpdateGridData_SelectionFromEvent(me_find);
 			}
 		}
 	}
@@ -1021,6 +1025,7 @@ namespace Squeak {
 			// if either returns true, update:
 			if(bOK)
 			{
+				// MAKE SURE THESE CAN HANDLE NO EVENTS
 				UpdateGridData();
 				UpdateFormEventTimes();
 				mouseLL->set_IsDirty();
@@ -1029,7 +1034,10 @@ namespace Squeak {
 		// remove event at selection
 		bool Form1::_Grid_RemoveEvent(int iRow_NZ)
 		{
-			return true;
+			// get the current node
+			MouseLLEvent^ current_node = grid_row_to_event[iRow_NZ]; // get event, zero index row
+
+			return mouseLL->RemoveEventAt(current_node);
 		}
 		
 		// add before or after selection
@@ -1041,7 +1049,7 @@ namespace Squeak {
 				QuickMsgBox::MBox("Need current event state to add another event (check whether an arm indicator is on)");
 				return false;
 			}
-QuickMsgBox::QTrace("Getting event from row {0}", iRow_NZ);
+
 			// get the current node
 			MouseLLEvent^ current_node = grid_row_to_event[iRow_NZ]; // get event, zero index row
 

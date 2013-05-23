@@ -36,12 +36,12 @@ update tracking
 	same function for new time?
 		X slider
 		X step buttons
-		grid
+		X grid
 
 
 update events
 	Key --> add event
-		no events?
+		x no events?
 	Record, no sequence
 		event on
 			BAD: add event by constructor[addEvent -->  updateEvent] --> setup_loadRecordStart
@@ -49,3 +49,10 @@ update events
 		event off
 			no event added -> setup_loadNew
 
+
+Check:
+	save after changing arm (grid)
+	save after changing time (grid)
+	save after changing fed (grid)
+	save after adding (grid)
+	save before loading

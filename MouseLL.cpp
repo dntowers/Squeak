@@ -881,6 +881,21 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		return currentEvent;
 
 	}
+	// find node by time - finds event corresponding to current time, may be none if no events, or
+	//		prior to the start of the first event
+	MouseLLEvent^ MouseLL::FindNodeByTime(double match_time)
+	{
+		MouseLLEvent^ matching_event = nullptr;			// will hold matching event
+		MouseLLEvent^ matching_event_next = nullptr;	// needed by function
+
+		bool bFound = _search_NoPreviousNode(match_time, matching_event, matching_event_next);
+		// will be true if found, should hold the event
+		if(bFound == true)
+			return matching_event;
+		else
+			return nullptr;
+
+	}
 
 	// searches for the node with a time the same or after the event, prior to next event
 	bool MouseLL::_search_NoPreviousNode(double te_testTime, MouseLLEvent^% ev_test_current_event, MouseLLEvent^% ev_test_next_event)
@@ -1615,6 +1630,65 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 
 #pragma region node add or remove
 
+// remove the specific node
+bool MouseLL::RemoveEventAt(MouseLLEvent^ removeNode)
+{
+	
+	// ensure this isn't a null pointer
+	if(removeNode == nullptr)
+	{
+		QuickMsgBox::MBox("ERROR: MouseLL::RemoveEventAt sent a null pointer");
+		return false;
+	}
+
+	// check various conditions
+	// remove node = E(x)
+	MouseLLEvent^ prevNode = removeNode->getPreviousEvent();	// E(x-1), may be null
+	MouseLLEvent^ nextNode = removeNode->getNextEvent();		// E(x+1), may be null
+
+	// check if only event
+	if((removeNode == firstEvent) && (removeNode == lastEvent))
+	{
+		// only event!
+		firstEvent = nullptr;		lastEvent = nullptr;
+		ev_currentEvent  = nullptr;	ev_nextEvent  = nullptr;
+		te_currentTime = -1.0;		te_nextTime = -1.0;
+		Count = 0;
+		return true;
+	}
+
+	// check if the first
+	if(removeNode == firstEvent)
+	{
+		// removing first event
+		nextNode->setPrevEvent(nullptr);			// set E(x+1) event to have no predecessory
+		ev_currentEvent = nextNode;					// set current to be E(x+1)
+		firstEvent = nextNode;						// set E(first) to E(x+1) 
+		ev_nextEvent = nextNode->getPreviousEvent();	// set next to E(x+1)->nextEvent
+		Count--;
+		return true;
+	}
+	// check if the last
+	if(removeNode == lastEvent)
+	{
+		// removing first event
+		prevNode->setNextEvent(nullptr);			// set E(x-1) to last to have no next event
+		ev_currentEvent = nextNode;					// set current to E(x-1)
+		lastEvent = prevNode;						// set E(last) = E(last-1)
+		//  not - not setting next, since this is already the last
+		Count--;
+		return true;
+	}
+
+	// at this point, E(x) must be between two existing nodes
+	prevNode->setNextEvent(nextNode);	// set E(X-1)'s next node to be E(X+1)
+	nextNode->setPrevEvent(prevNode);	// set E(X+1)'s previous node to be E(X-1)
+	ev_currentEvent = prevNode;			// make E(X-1) the current event
+	ev_nextEvent = nextNode;			// make E(X+1) the next event
+	Count--;
+	return true;
+}
+
 // add a node, either before or after the specified node, -1 is before, +1 is after
 bool MouseLL::AddEventAt(MouseLLEvent^ addAtNode, double dNewTime, int iNewArm, bool bNewFed, int iDirection)
 {
@@ -1760,11 +1834,6 @@ QuickMsgBox::QTrace("\n-------\n");
 
 	return true;
 
-}
-// remove the specific node
-bool MouseLL::RemoveEventAt(MouseLLEvent^ removeNode)
-{
-	return true;
 }
 
 #pragma endregion
