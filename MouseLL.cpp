@@ -332,7 +332,6 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 #pragma endregion
 
 #pragma region File IO Output
-	// create string array out of events
 	bool MouseLL::_EventsToStrings(System::Text::StringBuilder^ sb)
 	{
 		bool bOK = false;

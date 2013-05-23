@@ -1,7 +1,7 @@
 #pragma once
 
-#define AUTOSEQ "C:\\Users\\David\\Desktop\\Test.csv"
-#define AUTOMOV "C:\\Users\\David\\Desktop\\CH1 1.wmv"
+//#define AUTOSEQ "C:\\Users\\David\\Desktop\\Test.csv"
+//#define AUTOMOV "C:\\Users\\David\\Desktop\\CH1 1.wmv"
 //#ifndef D_EVENTSTRING
 //#define D_EVENTSTRING(var_event)  var_event != nullptr ? System::Diagnostics::Trace::WriteLine(System::String::Format("Event {0}\n\t{1}",#var_event,  var_event->ToString())) : System::Diagnostics::Trace::WriteLine(System::String::Format("Event {0}: null", #var_event))
 //#endif

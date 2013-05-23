@@ -100,6 +100,7 @@
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="FormTextInput.cpp" />
+    <ClCompile Include="GridRowData.cpp" />
     <ClCompile Include="MouseLL.cpp" />
     <ClCompile Include="QuickMsgBox.cpp" />
     <ClCompile Include="Squeak.cpp" />
@@ -119,6 +120,7 @@
     <ClInclude Include="FormTextInput.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="GridRowData.h" />
     <ClInclude Include="MouseLL.h" />
     <ClInclude Include="QuickMsgBox.h" />
     <ClInclude Include="resource.h" />

@@ -23,7 +23,7 @@ public:
 // -- override
      virtual System::String^ ToString() override 
      {
-		  return System::String::Format("{0},{1},{2}", dTimestamp, iArm, bFed);
+		  return System::String::Format("{0},{1},{2}\n", dTimestamp, iArm, bFed);
      }
 
 private:

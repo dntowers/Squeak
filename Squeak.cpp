@@ -941,6 +941,8 @@ namespace Squeak {
 				// try to set correct row
 				MouseLLEvent^ me_find = mouseLL->FindNodeByTime(WMP_GetPosition());
 				// this wil check for a null pointer, otherwise set grid row
+if(me_find != nullptr)
+	QuickMsgBox::QTrace("POST change selection: {0}\n", me_find->ToString());
 				UpdateGridData_SelectionFromEvent(me_find);
 			}
 		}
@@ -958,7 +960,19 @@ namespace Squeak {
 				int rowIndex = grid_event_to_row[new_event];
 				
 				// update selected row
-				dataGridViewEvents->Rows[rowIndex-1]->Selected = true;
+				//dataGridViewEvents->Rows[rowIndex-1]->Selected = true;
+
+				//QuickMsgBox::QTrace("SETTING GRID ROW (NON-ZERO): {0}\n", rowIndex);
+				//QuickMsgBox::QTrace("Current by cell (NON-ZERO): {0}\n", dataGridViewEvents->CurrentCell->RowIndex + 1);
+				//QuickMsgBox::QTrace("Current by row (NON-ZERO): {0}\n", dataGridViewEvents->CurrentRow->Index + 1);
+
+				dataGridViewEvents->CurrentCell = dataGridViewEvents->Rows[rowIndex-1]->Cells[0]; 
+
+				/*QuickMsgBox::QTrace("Set using Current Cell, now ...\n");
+				QuickMsgBox::QTrace("Current by cell (NON-ZERO): {0}\n", dataGridViewEvents->CurrentCell->RowIndex + 1);
+				QuickMsgBox::QTrace("Current by row (NON-ZERO): {0}\n", dataGridViewEvents->CurrentRow->Index + 1);*/
+
+
 			}
 		}
 	}
@@ -1001,6 +1015,8 @@ namespace Squeak {
 
 			// check for selection
 			DataGridViewRow^ dataGridViewRow = dataGridViewEvents->CurrentRow;
+
+QuickMsgBox::QTrace("PRE REMOVE OR ADD Selection row (NZ): {0}", dataGridViewRow->Index + 1);
 			if(dataGridViewRow == nullptr)
 			{
 				QuickMsgBox::MBox("Event must be selected on the data grid");
