@@ -33,6 +33,18 @@
     <None Include="icon1.ico">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\..\..\mouse_32.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\..\mouse_16.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\..\icon2.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\squeak.ico">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Squeak.cpp">

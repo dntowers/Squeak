@@ -1,5 +1,26 @@
 // Squeak.cpp : main project file.
 
+//namespace SQExceptions
+//{
+//	using namespace System;
+//	using namespace System::Threading;
+//
+//	public class UH
+//	{
+//	public:
+//		static void UHandler(object sender, UnhandledExceptionEventArgs args)
+//		{
+//			Exception e = (Exception) args.ExceptionObject;
+//
+//			Console.WriteLine("Exception Message: {0}", e.Message);
+//		}
+//		//static void OnUnhandled(Object^ sender, ThreadExceptionEventArgs^ e)
+//		//{
+//		//	//MessageBox::Show(e->Exception->Message, "Global Exeception");
+//		//	Application::ExitThread( );
+//		//}
+//	};
+//};
 
 #include "stdafx.h"
 #include "QuickMsgBox.h"
@@ -16,13 +37,30 @@
 
 //#define STATE_CHANGE
 
-using namespace Squeak;
 
+using namespace System;
+static void UHandler( Object^ /*sender*/, UnhandledExceptionEventArgs^ args )
+{
+    Exception^ e = dynamic_cast<Exception^>(args->ExceptionObject);
+    //Console::WriteLine( "MyHandler caught : {0}", e->Message );
+	if ( Diagnostics::EventLog::SourceExists( "Application" ) )
+    {
+		Diagnostics::EventLog::WriteEntry( "Application", e->Message );
+	}
+
+}
+
+using namespace Squeak;
 
 
 [STAThreadAttribute]
 int main(array<System::String ^> ^args)
 {
+	// for exception handling
+	AppDomain^ currentDomain = AppDomain::CurrentDomain;
+	currentDomain->UnhandledException += gcnew UnhandledExceptionEventHandler(UHandler);
+
+
 	// Enabling Windows XP visual effects before any controls are created
 	Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false); 
@@ -38,6 +76,7 @@ int main(array<System::String ^> ^args)
 //System::Void Squeak::btPlay_Click(System::Object^  sender, System::EventArgs^  e) {
 //	axWindowsMediaPlayer1->Ctlcontrols->play();
 //}
+
 
 // buttons
 namespace Squeak
@@ -287,10 +326,13 @@ namespace Squeak
 	bool Form1::Sequence_New(bool bFromRecordButton)
 	{
 		// check if movie is "connected"
-		if(WMP_Duration() == 0)
+		if(!bAppClosing)
 		{
-			MessageBox::Show("Movie must be loaded before new sequence can be loaded - try playing movie briefly");
-			return false;
+			if(WMP_HasVideo() == 0)
+			{
+				MessageBox::Show("Movie must be loaded before new sequence can be loaded - try playing movie briefly");
+				return false;
+			}
 		}
 		Pause_Movie();
 		bool bAddedOK = false;
@@ -421,9 +463,14 @@ namespace Squeak
 	{
 		bool bCancel = false;
 		// check if movie is "connected"
+		if(WMP_HasVideo() == 0)
+		{
+			MessageBox::Show("Movie must be loaded before new sequence can be loaded");
+			return;
+		}
 		if(WMP_Duration() == 0)
 		{
-			MessageBox::Show("Movie must be loaded before new sequence can be loaded - try playing movie briefly");
+			MessageBox::Show("Movie must be 'connected' before new sequence can be loaded - try playing movie briefly");
 			return;
 		}
 		// pause before loading
@@ -439,10 +486,8 @@ namespace Squeak
 			// path to load - NOTE: Included for autorun
 			if(String::IsNullOrEmpty(strSeqLoadFile))
 			{
-				System::String^ strSeqLoadFile = _LoadSeqDialog();
-			}else
-				
-
+				strSeqLoadFile = _LoadSeqDialog();
+			}
 			if(strSeqLoadFile->Length > 0)
 			{
 				bool bAddedOK = true;
@@ -498,8 +543,6 @@ namespace Squeak
 						#endif
 					}else
 					{
-						// fail, destroy sequence
-						MessageBox::Show("DELETING");
 						delete mouseLL;
 						mouseLL = nullptr;
 						#ifdef STATE_CHANGE
@@ -539,9 +582,12 @@ namespace Squeak
 			}
 		}else
 		{
-			// no video
-			MessageBox::Show("Cannot have sequence without video loaded");
-			bOK_New = false;
+			if(!bAppClosing)
+			{
+				// no video
+				MessageBox::Show("Cannot have sequence without video loaded");
+				bOK_New = false;
+			}
 		}
 		// return status
 		return bOK_New;
@@ -621,11 +667,17 @@ namespace Squeak
 			// playing, check if mouse event structur
 			if(mouseLL == nullptr)
 			{
-				// create new sequence
-				if(Sequence_New(true))
-				{					
-					bRecording = true;
-					EnableGrid(false);
+				if(WMP_GetPosition() == 0)
+				{
+					QuickMsgBox::MBox("Cannot record before movie has 'connected' - play the movie for a few moments before recording");
+				}else
+				{
+					// create new sequence
+					if(Sequence_New(true))
+					{					
+						bRecording = true;
+						EnableGrid(false);
+					}
 				}
 			}else
 			{
@@ -645,13 +697,13 @@ namespace Squeak
 		if(bRecording)
 		{
 			btnRecordEvents->Text = L"Play\r\nEvents (/)";
-			shapeRecording->FillColor = System::Drawing::Color::Red;
+			//shapeRecording->FillColor = System::Drawing::Color::Red;
 			labelRecordStatus->Text = L"Recording";
 			labelRecordStatus->ForeColor = System::Drawing::Color::Red;
 		}else
 		{
 			btnRecordEvents->Text = L"Record\r\nEvents (/)";
-			shapeRecording->FillColor = System::Drawing::Color::Black;
+			//shapeRecording->FillColor = System::Drawing::Color::Black;
 			labelRecordStatus->Text = L"Playing";
 			labelRecordStatus->ForeColor = System::Drawing::Color::Black;
 		}
@@ -941,9 +993,12 @@ namespace Squeak {
 				// try to set correct row
 				MouseLLEvent^ me_find = mouseLL->FindNodeByTime(WMP_GetPosition());
 				// this wil check for a null pointer, otherwise set grid row
-if(me_find != nullptr)
-	QuickMsgBox::QTrace("POST change selection: {0}\n", me_find->ToString());
 				UpdateGridData_SelectionFromEvent(me_find);
+				// update state
+				if(me_find != nullptr)
+				{
+					_StateSetButtonState(me_find->getArm(), me_find->getFed());
+				}
 			}
 		}
 	}

@@ -43,19 +43,23 @@ namespace Squeak {
 
 #pragma region initialize variables		
 
-			dWMP_Rate = WMP_GetRate();
-			rateUpDown->Value = Decimal(dWMP_Rate);
+			// closing flag
+			bAppClosing = false;
+
+			// --- WMP Stuff
+			dWMP_Rate = WMP_GetRate();							// current rate
+			rateUpDown->Value = Decimal(dWMP_Rate);				// convert rate
 			axWindowsMediaPlayer1->settings->autoStart = false; // prevent automatically starting on load
 			// position
-			dWmpPosition = WMP_GetPosition();
-			tbStateChange->Text = String::Format("{0}",dWmpPosition);
+			dWmpPosition = WMP_GetPosition();							// position
+			tbStateChange->Text = String::Format("{0}",dWmpPosition);	// indicate position in box
 
 			//strRate = System::String::Format("{0:F}",dWMP_Rate);
 			//this->tbRate->Text = strRate;
 			
 			// initialize selected button to null
 			btnSelected = nullptr;
-
+			
 			// set colors
 			colorButtonNormal = System::Drawing::SystemColors::InactiveCaptionText;
 			colorButtonMoving = System::Drawing::SystemColors::GradientActiveCaption;
@@ -202,7 +206,8 @@ namespace Squeak {
 		Dictionary<int,MouseLLEvent^>^ grid_row_to_event;
 		//GridRowData^ grid_row_data;
 
-		//LinkedList<MouseEvent^>^ mouseEvents;
+		// closing
+		bool bAppClosing;
 		// events
 		bool bRecording;
 		// MouseEvents^ mouseEvents; OLD SEQUENCE
@@ -211,7 +216,9 @@ namespace Squeak {
 		StateChangeLL^ stateLL;
 
 #pragma endregion
-	
+
+#pragma region Windows Form Designer generated code
+
 	private: System::Windows::Forms::TextBox^  tblabelRate;
 	private: System::Diagnostics::EventLog^  eventLog1;
 	private: System::Windows::Forms::NumericUpDown^  rateUpDown;
@@ -233,8 +240,8 @@ namespace Squeak {
 	private: System::Windows::Forms::Button^  btnRecordEvents;
 	private: System::Windows::Forms::Label^  label2;
 	private: System::Windows::Forms::Label^  labelRecordStatus;
-	private: Microsoft::VisualBasic::PowerPacks::ShapeContainer^  shapeContainer1;
-	private: Microsoft::VisualBasic::PowerPacks::OvalShape^  shapeRecording;
+
+
 	private: System::Windows::Forms::Button^  btnSequenceLoad;
 	private: System::Windows::Forms::Button^  btnSequenceNew;
 	private: System::Windows::Forms::Button^  btnSequenceSave;
@@ -262,7 +269,7 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 
 
 
-#pragma region Windows Form Designer generated code
+
 
 	private: System::ComponentModel::IContainer^  components;
 
@@ -285,7 +292,6 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			this->components = (gcnew System::ComponentModel::Container());
 			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(Form1::typeid));
 			this->btPlay = (gcnew System::Windows::Forms::Button());
-			this->axWindowsMediaPlayer1 = (gcnew AxWMPLib::AxWindowsMediaPlayer());
 			this->tblabelRate = (gcnew System::Windows::Forms::TextBox());
 			this->eventLog1 = (gcnew System::Diagnostics::EventLog());
 			this->rateUpDown = (gcnew System::Windows::Forms::NumericUpDown());
@@ -307,8 +313,6 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			this->btnRecordEvents = (gcnew System::Windows::Forms::Button());
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->labelRecordStatus = (gcnew System::Windows::Forms::Label());
-			this->shapeContainer1 = (gcnew Microsoft::VisualBasic::PowerPacks::ShapeContainer());
-			this->shapeRecording = (gcnew Microsoft::VisualBasic::PowerPacks::OvalShape());
 			this->btnSequenceSave = (gcnew System::Windows::Forms::Button());
 			this->btnSequenceNew = (gcnew System::Windows::Forms::Button());
 			this->btnSequenceLoad = (gcnew System::Windows::Forms::Button());
@@ -328,10 +332,11 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			this->btn_gridAddBefore = (gcnew System::Windows::Forms::Button());
 			this->btn_grdAddAfter = (gcnew System::Windows::Forms::Button());
 			this->btn_gridRemove = (gcnew System::Windows::Forms::Button());
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->axWindowsMediaPlayer1))->BeginInit();
+			this->axWindowsMediaPlayer1 = (gcnew AxWMPLib::AxWindowsMediaPlayer());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->eventLog1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->rateUpDown))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->dataGridViewEvents))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->axWindowsMediaPlayer1))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// btPlay
@@ -345,18 +350,6 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			this->btPlay->Text = L"Play (0)";
 			this->btPlay->UseVisualStyleBackColor = true;
 			this->btPlay->Click += gcnew System::EventHandler(this, &Form1::btPlay_Click);
-			// 
-			// axWindowsMediaPlayer1
-			// 
-			this->axWindowsMediaPlayer1->Enabled = true;
-			this->axWindowsMediaPlayer1->Location = System::Drawing::Point(41, 31);
-			this->axWindowsMediaPlayer1->Name = L"axWindowsMediaPlayer1";
-			this->axWindowsMediaPlayer1->OcxState = (cli::safe_cast<System::Windows::Forms::AxHost::State^  >(resources->GetObject(L"axWindowsMediaPlayer1.OcxState")));
-			this->axWindowsMediaPlayer1->Size = System::Drawing::Size(694, 597);
-			this->axWindowsMediaPlayer1->TabIndex = 0;
-			this->axWindowsMediaPlayer1->MouseDownEvent += gcnew AxWMPLib::_WMPOCXEvents_MouseDownEventHandler(this, &Form1::axWindowsMediaPlayer1_MouseDownEvent);
-			this->axWindowsMediaPlayer1->PlayStateChange += gcnew AxWMPLib::_WMPOCXEvents_PlayStateChangeEventHandler(this, &Form1::axWindowsMediaPlayer1_PlayStateChange);
-			this->axWindowsMediaPlayer1->PositionChange += gcnew AxWMPLib::_WMPOCXEvents_PositionChangeEventHandler(this, &Form1::axWindowsMediaPlayer1_PositionChange);
 			// 
 			// tblabelRate
 			// 
@@ -563,14 +556,13 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			// 
 			// btnGetVideoFileName
 			// 
-			this->btnGetVideoFileName->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point, 
-				static_cast<System::Byte>(0)));
+			this->btnGetVideoFileName->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.75F, System::Drawing::FontStyle::Regular, 
+				System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(0)));
 			this->btnGetVideoFileName->Location = System::Drawing::Point(620, 729);
 			this->btnGetVideoFileName->Name = L"btnGetVideoFileName";
-			this->btnGetVideoFileName->Size = System::Drawing::Size(36, 31);
+			this->btnGetVideoFileName->Size = System::Drawing::Size(103, 31);
 			this->btnGetVideoFileName->TabIndex = 16;
-			this->btnGetVideoFileName->Text = L"...";
-			this->btnGetVideoFileName->TextAlign = System::Drawing::ContentAlignment::TopCenter;
+			this->btnGetVideoFileName->Text = L"Load Video";
 			this->btnGetVideoFileName->UseVisualStyleBackColor = true;
 			this->btnGetVideoFileName->Click += gcnew System::EventHandler(this, &Form1::btnGetVideoFileName_Click);
 			// 
@@ -592,7 +584,7 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			// 
 			this->btnRecordEvents->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.75F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(0)));
-			this->btnRecordEvents->Location = System::Drawing::Point(850, 23);
+			this->btnRecordEvents->Location = System::Drawing::Point(880, 23);
 			this->btnRecordEvents->Name = L"btnRecordEvents";
 			this->btnRecordEvents->Size = System::Drawing::Size(74, 47);
 			this->btnRecordEvents->TabIndex = 19;
@@ -614,36 +606,15 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			// labelRecordStatus
 			// 
 			this->labelRecordStatus->AutoSize = true;
-			this->labelRecordStatus->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.75F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point, 
+			this->labelRecordStatus->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(0)));
 			this->labelRecordStatus->ForeColor = System::Drawing::Color::Black;
-			this->labelRecordStatus->Location = System::Drawing::Point(763, 21);
+			this->labelRecordStatus->Location = System::Drawing::Point(758, 35);
 			this->labelRecordStatus->Name = L"labelRecordStatus";
-			this->labelRecordStatus->Size = System::Drawing::Size(60, 16);
+			this->labelRecordStatus->Size = System::Drawing::Size(66, 20);
 			this->labelRecordStatus->TabIndex = 21;
 			this->labelRecordStatus->Text = L"Playing";
 			this->labelRecordStatus->TextAlign = System::Drawing::ContentAlignment::MiddleRight;
-			// 
-			// shapeContainer1
-			// 
-			this->shapeContainer1->Location = System::Drawing::Point(0, 0);
-			this->shapeContainer1->Margin = System::Windows::Forms::Padding(0);
-			this->shapeContainer1->Name = L"shapeContainer1";
-			this->shapeContainer1->Shapes->AddRange(gcnew cli::array< Microsoft::VisualBasic::PowerPacks::Shape^  >(1) {this->shapeRecording});
-			this->shapeContainer1->Size = System::Drawing::Size(1024, 762);
-			this->shapeContainer1->TabIndex = 22;
-			this->shapeContainer1->TabStop = false;
-			// 
-			// shapeRecording
-			// 
-			this->shapeRecording->BackColor = System::Drawing::Color::Black;
-			this->shapeRecording->BorderColor = System::Drawing::SystemColors::ButtonShadow;
-			this->shapeRecording->BorderWidth = 2;
-			this->shapeRecording->FillColor = System::Drawing::Color::Black;
-			this->shapeRecording->FillStyle = Microsoft::VisualBasic::PowerPacks::FillStyle::Solid;
-			this->shapeRecording->Location = System::Drawing::Point(775, 43);
-			this->shapeRecording->Name = L"shapeRecording";
-			this->shapeRecording->Size = System::Drawing::Size(33, 34);
 			// 
 			// btnSequenceSave
 			// 
@@ -857,6 +828,18 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			this->btn_gridRemove->UseVisualStyleBackColor = true;
 			this->btn_gridRemove->Click += gcnew System::EventHandler(this, &Form1::btn_gridRemove_Click);
 			// 
+			// axWindowsMediaPlayer1
+			// 
+			this->axWindowsMediaPlayer1->Enabled = true;
+			this->axWindowsMediaPlayer1->Location = System::Drawing::Point(41, 31);
+			this->axWindowsMediaPlayer1->Name = L"axWindowsMediaPlayer1";
+			this->axWindowsMediaPlayer1->OcxState = (cli::safe_cast<System::Windows::Forms::AxHost::State^  >(resources->GetObject(L"axWindowsMediaPlayer1.OcxState")));
+			this->axWindowsMediaPlayer1->Size = System::Drawing::Size(694, 597);
+			this->axWindowsMediaPlayer1->TabIndex = 0;
+			this->axWindowsMediaPlayer1->MouseDownEvent += gcnew AxWMPLib::_WMPOCXEvents_MouseDownEventHandler(this, &Form1::axWindowsMediaPlayer1_MouseDownEvent);
+			this->axWindowsMediaPlayer1->PlayStateChange += gcnew AxWMPLib::_WMPOCXEvents_PlayStateChangeEventHandler(this, &Form1::axWindowsMediaPlayer1_PlayStateChange);
+			this->axWindowsMediaPlayer1->PositionChange += gcnew AxWMPLib::_WMPOCXEvents_PositionChangeEventHandler(this, &Form1::axWindowsMediaPlayer1_PositionChange);
+			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
@@ -898,7 +881,6 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			this->Controls->Add(this->tblabelRate);
 			this->Controls->Add(this->btPlay);
 			this->Controls->Add(this->axWindowsMediaPlayer1);
-			this->Controls->Add(this->shapeContainer1);
 			this->KeyPreview = true;
 			this->Name = L"Form1";
 			this->Text = L"Squeak";
@@ -906,10 +888,10 @@ private: System::Windows::Forms::Button^  btn_gridAddBefore;
 			this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &Form1::Form1_KeyDown);
 			this->KeyPress += gcnew System::Windows::Forms::KeyPressEventHandler(this, &Form1::Form1_KeyPress);
 			this->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &Form1::Form1_MouseClick);
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->axWindowsMediaPlayer1))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->eventLog1))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->rateUpDown))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->dataGridViewEvents))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->axWindowsMediaPlayer1))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -1153,13 +1135,17 @@ QuickMsgBox::QTrace("<Add After Clicked {0}>", WMP_GetPosition());
 		 }
 		// closing form
 		System::Void Form1_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e) {
+			bAppClosing = true;
 			// check for dirty sequence
 			bool bCloseCancel = false;
 			bool bOkClose = false;
 			// bOkClose = true if no sequence or sequence saved; bCloseCancel will be true of close should be cancelled
 			bOkClose = Sequence_OK_New(&bCloseCancel);
 			if(bCloseCancel)
+			{
 				e->Cancel = true;
+				bAppClosing = false;
+			}
 		}
 		// step forward
 		System::Void btnStepForward_Click(System::Object^  sender, System::EventArgs^  e) {
@@ -1315,7 +1301,8 @@ private:
 	System::Void Update_Time_Box(double dMovieTime, System::String^ strCaller);
 	// load file dialog
 	System::String^ _LoadSeqDialog(void);
-	
+
+
 };
 };
 

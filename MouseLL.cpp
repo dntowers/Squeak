@@ -162,7 +162,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	{
 		MouseLLEvent^ newLLEvent;
 		int iLocation; // for updating, -1 for before first, 1 for after last, 0 for middle
-
+		bool bReset = false;  // set to true if just changing the first event or last event params
 		if(Count == 0)
 		{
 			// bStartFromRecord = true if event added after new mouseLL, recording started with event on
@@ -207,11 +207,18 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			if(IsBeforeOrAtFirst(dNewTime))
 			{
 				// inserted before, or if same time replaced arm and fed
-				if(addFirstEvent(dNewTime, bNewFeed, iNewArm, newLLEvent))
+				if(addFirstEvent(dNewTime, bNewFeed, iNewArm, newLLEvent, &bReset))
 				{
-					Count++;
-					iLocation = -1;
-					QuickMsgBox::QTrace("addEvent: added before first, time {0}, count {1}\n",dNewTime, Count);
+					if(!bReset)
+					{
+						Count++;
+						iLocation = -1;
+						QuickMsgBox::QTrace("addEvent: added before first, time {0}, count {1}\n",dNewTime, Count);
+					}else
+					{
+						QuickMsgBox::QTrace("changed first event, no add (Count = {0}): event: {1}\n",dNewTime, firstEvent->ToString());
+						iLocation = 0;
+					}
 				}
 			}else
 			{
@@ -219,11 +226,18 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 				if(IsAfterOrAtLast(dNewTime))
 				{
 					// inserted after, or if same time replaced arm and fed
-					if(addLastEvent(dNewTime, bNewFeed, iNewArm, newLLEvent))
+					if(addLastEvent(dNewTime, bNewFeed, iNewArm, newLLEvent, &bReset))
 					{
-						Count++;
-						iLocation = 1;
-						QuickMsgBox::QTrace("addEvent: added after last, time {0}, count {1}\n",dNewTime, Count);
+						if(!bReset)
+						{
+							Count++;
+							iLocation = 1;
+							QuickMsgBox::QTrace("addEvent: added after last, time {0}, count {1}\n",dNewTime, Count);
+						}
+					}else
+					{
+						QuickMsgBox::QTrace("changed first event, no add (Count = {0}): event: {1}\n",dNewTime, firstEvent->ToString());
+						iLocation = 0;
 					}
 				}else
 				{
@@ -245,7 +259,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		return true;
 	}
 	// add event to beginning
-	bool MouseLL::addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track)
+	bool MouseLL::addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track, bool* p_bReset)
 	{
 		bool bReturn = false;
 		// check if new event time is before first event
@@ -272,6 +286,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			// set recent
 			recentEvent = firstEvent;
 			new_event_track = firstEvent;
+			*p_bReset = true;		// make sure we don't increment the count, set a next event, etc.
 			bReturn =  true;
 		}
 
@@ -280,7 +295,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 	}
 	
 	// add last to beginning
-	bool MouseLL::addLastEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track)
+	bool MouseLL::addLastEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track, bool* p_bReset)
 	{
 		bool bReturn = false;
 		// check if new event time is before first event
@@ -307,6 +322,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 			// set recent
 			recentEvent = lastEvent;
 			new_event_track = lastEvent;
+			*p_bReset = true;		// make sure we don't increment the count, set a next event, etc.
 			bReturn =  true;
 		}
 		return bReturn;
@@ -447,7 +463,8 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		{
 			// movie names not the same
 			System::String^ movieError = 
-				System::String::Format("Movie name '{0}' in '{1}' not the same as current movie '{2}'", newMovieName, strSeqLoadFile, currentMovieName);
+				System::String::Format("Movie name '{0}' in '{1}' not the same as current movie '{2}' - Cancelling", 
+									   newMovieName, strSeqLoadFile, currentMovieName);
 			System::Windows::Forms::MessageBox::Show(movieError);
 			sr->Close();
 			return false;

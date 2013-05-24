@@ -172,8 +172,8 @@ public:
 
 	// add new events
 	bool addEvent(double dNewTime, bool bNewFeed, int iNewArm, bool bStartFromRecord); // bStartFromRecord = true if event added when recording starts
-	bool addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track);
-	bool addLastEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track);
+	bool addFirstEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track, bool* p_bRese);
+	bool addLastEvent(double dNewTime, bool bNewFeed, int iNewArm, MouseLLEvent^% new_event_track, bool* p_bbReset);
 	
 	// tests
 	bool IsBeforeOrAtFirst(double dNewTime){return dNewTime <= firstEvent->getTimestamp();}
