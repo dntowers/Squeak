@@ -379,7 +379,7 @@ MouseLL::MouseLL(System::String^ newSeqName, System::String^ currentMovieURL, do
 		saveFileDialogSeq->DefaultExt = ".csv";
 		saveFileDialogSeq->Title = "Save Event Sequence";
 		saveFileDialogSeq->CheckPathExists = true;
-		saveFileDialogSeq->FileName = seqName;
+		saveFileDialogSeq->FileName = System::String::Format("{0}.csv",seqName);
 
 		saveFileDialogSeq->ShowDialog();
 		// If the file name is not an empty string, open it for saving.

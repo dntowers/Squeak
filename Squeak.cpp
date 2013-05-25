@@ -45,6 +45,7 @@ static void UHandler( Object^ /*sender*/, UnhandledExceptionEventArgs^ args )
     //Console::WriteLine( "MyHandler caught : {0}", e->Message );
 	if ( Diagnostics::EventLog::SourceExists( "Application" ) )
     {
+		// WILL WRITE UNHANLDED EXCEPTIONS TO EVENT LOG "Application"
 		Diagnostics::EventLog::WriteEntry( "Application", e->Message );
 	}
 

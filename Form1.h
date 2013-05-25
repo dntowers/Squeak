@@ -1169,8 +1169,11 @@ QuickMsgBox::QTrace("<Add After Clicked {0}>", WMP_GetPosition());
 				double newPos = WMP_GetPosition();
 				//tbStateChange->Text = MovieTimeToString(newPos);
 				Update_Time_Box(newPos, L"_UpdateFromStep");
-				MouseLLEvent^ me_sent = mouseLL->playEvent_NoTimer(newPos, &bNoState);
-				_UpdateFrom_PlayEvent(me_sent, bNoState);
+				if(mouseLL != nullptr)
+				{
+					MouseLLEvent^ me_sent = mouseLL->playEvent_NoTimer(newPos, &bNoState);
+					_UpdateFrom_PlayEvent(me_sent, bNoState);
+				}
 		}
 		
 		// reload data grid
